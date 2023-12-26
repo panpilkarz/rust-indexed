@@ -1,0 +1,11 @@
+[[sources]]
+title = "Rust Book 2nd edition"
+base_url = "https://doc.rust-lang.org/book/"
+directory = "mdbooks/rust-book/second-edition/src/"
+
+[[sources]]
+title = "Rust Book 1nd edition"
+base_url = "https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition"
+directory = "mdbooks/rust-book/first-edition/src/"
+
+
