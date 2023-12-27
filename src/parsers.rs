@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 fn parse_link_descripton(s: &str) -> &str {
     if let Some(index) = s.find('[') {
         return &s[index + 1..];
@@ -19,6 +21,72 @@ pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
         })
         .filter(|x| !(x.0.is_empty() || x.1.is_empty()))
         .collect()
+}
+
+pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
+    let mut new_s = String::new();
+    let mut code_blocks: Vec<String> = vec![];
+    let mut code = String::new();
+    let mut in_code = false;
+
+    for line in s.split('\n') {
+        // Code block start/end
+        if line.starts_with("```") {
+            if in_code {
+                if !code.is_empty() {
+                    code_blocks.push(code.trim().to_string());
+                }
+                code.clear();
+                in_code = false;
+                continue;
+            }
+            in_code = true;
+            continue;
+        }
+
+        // Skip underlines
+        if !in_code && (line.starts_with("---") || line.starts_with("___")) {
+            continue;
+        }
+
+        // Handle includes
+        if line.starts_with("{{") {
+            if line.starts_with("{{#include ") || line.starts_with("{{#rustdoc_include ") {
+                let rel_filename = line
+                    .split(' ')
+                    .map(|x| x.trim().trim_end_matches('}'))
+                    .filter(|x| !x.is_empty())
+                    .nth(1);
+
+                if let Some(filename) = rel_filename {
+                    // ../src/main.rs:anchor
+                    let path = PathBuf::from(md_dir).join(filename.split(':').next().unwrap());
+                    if let Ok(buf) = std::fs::read_to_string(&path) {
+                        new_s.push_str(&buf);
+                        if in_code {
+                            code.push_str(&buf);
+                            code.push('\n');
+                        }
+                    } else {
+                        eprintln!("Couldn't open {:?}", path);
+                    }
+                }
+            }
+            continue;
+        }
+
+        let line = line.trim_end();
+
+        if in_code {
+            code.push_str(line);
+            code.push('\n');
+        }
+
+        new_s.push_str(line);
+        new_s.push('\n');
+    }
+
+    (new_s.trim().to_string(), code_blocks)
 }
 
 #[cfg(test)]
@@ -49,5 +117,82 @@ mod tests {
 
         assert!(parsed[2].0.as_str() == "Course Structure");
         assert!(parsed[2].1.as_str() == "running-the-course/course-structure");
+    }
+
+    #[test]
+    fn test_parse_page_with_code() {
+        let (body, code_blocks) = parse_md_page(
+            "
+# Example code 1
+```rust,ignore
+let x = 1;
+```
+
+# Example code 2
+```shell
+loop {
+    let a = String::new();
+}
+```
+        ",
+            ".",
+        );
+
+        assert_eq!(
+            body,
+            "# Example code 1
+let x = 1;
+
+# Example code 2
+loop {
+    let a = String::new();
+}"
+        );
+
+        assert_eq!(code_blocks[0], "let x = 1;");
+        assert_eq!(
+            code_blocks[1],
+            "loop {
+    let a = String::new();
+}"
+        );
+    }
+
+    #[test]
+    fn test_parse_page_with_include() {
+        let (body, code_blocks) = parse_md_page(
+            "
+```
+{{#include }}
+```
+```
+{{#include src/main.rs}}
+```
+```
+{{#include  src/parsers.rs  }}
+```
+```
+{{#rustdoc_include src/indexers.rs}}
+```
+        ",
+            ".",
+        );
+
+        assert!(body.len() > 1024);
+        assert!(code_blocks.len() == 3);
+    }
+
+    #[test]
+    fn test_parse_path_with_underlines() {
+        let (body, _) = parse_md_page(
+            "
+---
+NOTES
+___
+        ",
+            "/tmp/",
+        );
+
+        assert_eq!(body, "NOTES");
     }
 }

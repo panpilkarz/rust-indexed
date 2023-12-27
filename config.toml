@@ -1,7 +1,7 @@
 [[sources]]
 title = "Rust Book 2nd edition"
 base_url = "https://doc.rust-lang.org/book"
-directory = "mdbooks/rust-book/second-edition/src/"
+directory = "mdbooks/rust-book/src/"
 
 [[sources]]
 title = "Rust Book 1st edition"
@@ -12,3 +12,8 @@ directory = "mdbooks/rust-book/first-edition/src/"
 title = "Comprehensive Rust"
 base_url = "https://google.github.io/comprehensive-rust"
 directory = "mdbooks/comprehensive-rust/src/"
+
+[[sources]]
+title = "Rust By Example"
+base_url = "https://doc.rust-lang.org/rust-by-example"
+directory = "mdbooks/rust-by-example/src"
