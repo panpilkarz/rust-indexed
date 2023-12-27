@@ -1,9 +1,11 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use std::path::PathBuf;
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
-use tantivy::schema::*;
-use tantivy::{doc, Index, IndexWriter, ReloadPolicy};
-use toml;
+use tantivy::{doc, ReloadPolicy, SnippetGenerator};
+
+use rust_indexed::indexers::{PageIndex, SummaryMdIndex};
+use rust_indexed::parsers::parse_summary_md;
 
 #[derive(Debug, Deserialize)]
 struct IndexedSource {
@@ -18,48 +20,47 @@ struct Config {
 }
 
 fn main() -> tantivy::Result<()> {
-    println!("Hello, world!");
-
     let config: Config =
-        toml::from_str(&std::fs::read_to_string("config.toml")?).expect("Invalid toml");
+        toml::from_str(&std::fs::read_to_string("config.toml")?).expect("No config.toml");
 
-    dbg!(config);
-    std::process::exit(0);
+    let mut summary_md_index = SummaryMdIndex::new("index_summary_md")?;
+    let mut page_index = PageIndex::new("index_page")?;
 
-    let mut schema_builder = Schema::builder();
+    for source in config.sources {
+        let path = PathBuf::from(&source.directory).join("SUMMARY.md");
+        println!("Indexing {:?}", path);
+        let buf = std::fs::read_to_string(path.to_str().unwrap())?;
+        let summary_md = parse_summary_md(&buf);
+        let mut total = 0;
+        for (desc, rel_url) in summary_md {
+            let url = format!("{}/{}.html", source.base_url, rel_url);
+            let title = format!("{} - {}", desc, source.title);
+            summary_md_index.add_document(title.clone(), url.clone())?;
 
-    schema_builder.add_text_field("title", TEXT | STORED);
-    schema_builder.add_text_field("body", TEXT | STORED);
-
-    let documents = [
-        include_str!("../mdbooks/comprehensive-rust/src/SUMMARY.md"),
-        include_str!("../mdbooks/yet-another-rust-resource/src/SUMMARY.md"),
-        include_str!("../mdbooks/rust-book/first-edition/src/SUMMARY.md"),
-        include_str!("../mdbooks/rust-book/second-edition/src/SUMMARY.md"),
-        include_str!("../mdbooks/rust-book/src/SUMMARY.md"),
-        include_str!("../mdbooks/rustonomicon/src/SUMMARY.md"),
-        include_str!("../mdbooks/rust-by-example/src/SUMMARY.md"),
-    ];
-
-    let schema = schema_builder.build();
-    let title = schema.get_field("title").unwrap();
-    let body = schema.get_field("body").unwrap();
-
-    let index = Index::create_in_dir("index", schema.clone())?;
-
-    let mut index_writer: IndexWriter = index.writer(50_000_000)?;
-
-    for doc in documents {
-        for line in doc.split("\n") {
-            println!("{line}");
-            index_writer.add_document(doc!(
-                title => line.to_string(),
-                body => "body".to_string(),
-            ))?;
+            let path = PathBuf::from(&source.directory).join(format!("{}.md", rel_url));
+            if let Ok(buf) = std::fs::read_to_string(path.to_str().unwrap()) {
+                page_index.add_document(title, url, buf)?;
+                total += 1;
+            }
+            else {
+                eprintln!("Couldn't parse {:?}", path);
+            }
         }
+        println!("Indexed {} pages", total);
     }
 
-    index_writer.commit()?;
+    summary_md_index.commit()?;
+    page_index.commit()?;
+
+    // std::process::exit(0);
+
+    // let index = &summary_md_index.index;
+    // let title = &summary_md_index.title;
+    // let url = &summary_md_index.url;
+
+    let index = &page_index.index;
+    let body = &page_index.body;
+    let url = &page_index.url;
 
     let reader = index
         .reader_builder()
@@ -68,16 +69,22 @@ fn main() -> tantivy::Result<()> {
 
     let searcher = reader.searcher();
 
-    let query_parser = QueryParser::for_index(&index, vec![title, body]);
+    // let query_parser = QueryParser::for_index(index, vec![*title]);
+    let query_parser = QueryParser::for_index(index, vec![*body]);
 
-    let query = query_parser.parse_query("generics")?;
+    let query = query_parser.parse_query("async")?;
 
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
 
+    let snippet_generator = SnippetGenerator::create(&searcher, &*query, *body)?;
+
     for (_score, doc_address) in top_docs {
         let retrieved_doc = searcher.doc(doc_address)?;
-        let json = schema.to_json(&retrieved_doc);
-        println!("{}", json);
+        // let title = retrieved_doc.get_first(*title).unwrap().as_text().unwrap();
+        // let body = retrieved_doc.get_first(*body).unwrap().as_text().unwrap();
+        let snippet = snippet_generator.snippet_from_doc(&retrieved_doc).to_html().replace("\n", " ");
+        let url = retrieved_doc.get_first(*url).unwrap().as_text().unwrap();
+        println!("{} snippet={} url={}", _score, snippet, url);
     }
 
     Ok(())

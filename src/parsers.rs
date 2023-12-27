@@ -6,9 +6,9 @@ fn parse_link_descripton(s: &str) -> &str {
 }
 
 pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
-    s.split("\n")
+    s.split('\n')
         .map(|x| x.trim())
-        .filter(|x| x.len() > 0)
+        .filter(|x| !x.is_empty())
         .map(|x| x.split("](").collect())
         .filter(|x: &Vec<&str>| x.len() == 2)
         .map(|x: Vec<&str>| {
@@ -17,13 +17,18 @@ pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
                 x[1].replace(".md)", ""),
             )
         })
-        .filter(|x| x.0.len() > 0 && x.1.len() > 0)
+        .filter(|x| !(x.0.is_empty() || x.1.is_empty()))
         .collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_parse_link_description() {
+        assert_eq!(parse_link_descripton("   [hello"), "hello");
+    }
 
     #[test]
     fn test_parse_summary_md() {
