@@ -1,8 +1,5 @@
 use serde::Deserialize;
 use std::path::PathBuf;
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::{doc, ReloadPolicy, SnippetGenerator};
 
 use rust_indexed::indexers::SearchIndex;
 use rust_indexed::parsers::{parse_md_page, parse_summary_md};

@@ -125,7 +125,7 @@ impl SearchIndex {
                                     results.push(SearchResult {
                                         title,
                                         url,
-                                        body: String::new(), // FIXME
+                                        body,
                                         snippet,
                                     });
                                 }

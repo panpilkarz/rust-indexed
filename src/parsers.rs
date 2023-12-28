@@ -7,6 +7,30 @@ fn parse_link_descripton(s: &str) -> &str {
     s
 }
 
+fn parse_include(s: &str, md_dir: &str) -> Option<String> {
+    let toks: Vec<_> = s
+        .split(' ')
+        .filter(|&x| x == "#include" || x == "#rustdoc_include")
+        .collect();
+
+    if !toks.is_empty() {
+        let filename = s.replace("{{", "").replace("}}", "").replace(toks[0], "");
+
+        let filename = filename.trim();
+
+        if !filename.is_empty() {
+            // ../src/main.rs:anchor
+            let path = PathBuf::from(md_dir).join(filename.split(':').next().unwrap());
+            if let Ok(buf) = std::fs::read_to_string(&path) {
+                return Some(buf);
+            } else {
+                eprintln!("Couldn't open {:?}", path);
+            }
+        }
+    }
+    None
+}
+
 pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
     s.split('\n')
         .map(|x| x.trim())
@@ -32,6 +56,7 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
     for line in s.split('\n') {
         // Code block start/end
         if line.starts_with("```") {
+            // FIXME: ```rust
             if in_code {
                 if !code.is_empty() {
                     code_blocks.push(code.trim().to_string());
@@ -50,26 +75,12 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
         }
 
         // Handle includes
-        if line.starts_with("{{") {
-            if line.starts_with("{{#include ") || line.starts_with("{{#rustdoc_include ") {
-                let rel_filename = line
-                    .split(' ')
-                    .map(|x| x.trim().trim_end_matches('}'))
-                    .filter(|x| !x.is_empty())
-                    .nth(1);
-
-                if let Some(filename) = rel_filename {
-                    // ../src/main.rs:anchor
-                    let path = PathBuf::from(md_dir).join(filename.split(':').next().unwrap());
-                    if let Ok(buf) = std::fs::read_to_string(&path) {
-                        new_s.push_str(&buf);
-                        if in_code {
-                            code.push_str(&buf);
-                            code.push('\n');
-                        }
-                    } else {
-                        eprintln!("Couldn't open {:?}", path);
-                    }
+        if let Some(line_stripped) = line.strip_prefix("{{") {
+            if let Some(buf) = parse_include(line_stripped, md_dir) {
+                new_s.push_str(&buf);
+                if in_code {
+                    code.push_str(&buf);
+                    code.push('\n');
                 }
             }
             continue;
@@ -174,12 +185,15 @@ loop {
 ```
 {{#rustdoc_include src/indexers.rs}}
 ```
+```
+{{ #include src/indexers.rs }}
+```
         ",
             ".",
         );
 
         assert!(body.len() > 1024);
-        assert!(code_blocks.len() == 3);
+        assert!(code_blocks.len() == 4);
     }
 
     #[test]
