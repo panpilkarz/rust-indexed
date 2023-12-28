@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-fn parse_link_descripton(s: &str) -> &str {
+fn seek_link_description(s: &str) -> &str {
     if let Some(index) = s.find('[') {
         return &s[index + 1..];
     }
@@ -23,9 +23,9 @@ fn parse_include(s: &str, md_dir: &str) -> Option<String> {
             let path = PathBuf::from(md_dir).join(filename.split(':').next().unwrap());
             if let Ok(buf) = std::fs::read_to_string(&path) {
                 return Some(buf);
-            } else {
-                eprintln!("Couldn't open {:?}", path);
             }
+
+            eprintln!("Couldn't open {:?}", path);
         }
     }
     None
@@ -39,7 +39,7 @@ pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
         .filter(|x: &Vec<&str>| x.len() == 2)
         .map(|x: Vec<&str>| {
             (
-                parse_link_descripton(x[0]).to_string(),
+                seek_link_description(x[0]).to_string(),
                 x[1].replace(".md)", ""),
             )
         })
@@ -105,8 +105,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_link_description() {
-        assert_eq!(parse_link_descripton("   [hello"), "hello");
+    fn test_seek_link_description() {
+        assert_eq!(seek_link_description("   [hello"), "hello");
     }
 
     #[test]

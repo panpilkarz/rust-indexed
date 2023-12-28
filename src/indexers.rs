@@ -5,86 +5,110 @@ use tantivy::{doc, Index, IndexWriter, ReloadPolicy, Searcher, SnippetGenerator,
 
 pub struct SearchIndex {
     dir: String,
-    pub index: Index,
-    pub index_writer: IndexWriter,
-    // schema
-    pub title: Field,
-    pub url: Field,
-    pub body: Field,
+    index: Index,
+    // optionals
     searcher: Option<Searcher>,
+    index_writer: Option<IndexWriter>,
     query_parser: Option<QueryParser>,
 }
 
 #[derive(Debug)]
 pub struct SearchResult {
-    pub title: String,
     pub url: String,
-    pub body: String,
+    pub title: String,
     pub snippet: String,
 }
 
 impl SearchIndex {
-    pub fn new(dir: &str) -> Result<Self, TantivyError> {
+    pub fn create(dir: &str) -> Result<Self, TantivyError> {
+        let schema = SearchIndex::create_schema();
+        let index = Index::create_in_dir(dir, schema)?;
+        let index_writer = index.writer(50_000_000)?;
+
+        println!("Created `{dir}` directory");
+
+        Ok(Self {
+            dir: dir.to_string(),
+            index,
+            searcher: None,
+            index_writer: Some(index_writer),
+            query_parser: None,
+        })
+    }
+
+    pub fn open(dir: &str) -> Result<Self, TantivyError> {
+        let index = Index::open_in_dir(dir)?;
+
+        println!("Opened `{dir}` index");
+
+        Ok(Self {
+            dir: dir.to_string(),
+            index,
+            searcher: None,
+            index_writer: None,
+            query_parser: None,
+        })
+    }
+
+    fn create_schema() -> Schema {
         let mut schema_builder = Schema::builder();
         schema_builder.add_text_field("title", TEXT | STORED);
         schema_builder.add_text_field("url", TEXT | STORED);
         schema_builder.add_text_field("body", TEXT | STORED);
 
-        let schema = schema_builder.build();
-        let index = Index::create_in_dir(dir, schema.clone())?;
-        let index_writer: IndexWriter = index.writer(50_000_000)?;
+        schema_builder.build()
+    }
 
-        println!("Created `{dir}` directory");
+    fn url(&self) -> Field {
+        self.index.schema().get_field("url").unwrap()
+    }
 
-        let title = schema.get_field("title").unwrap();
-        let url = schema.get_field("url").unwrap();
-        let body = schema.get_field("body").unwrap();
+    fn title(&self) -> Field {
+        self.index.schema().get_field("title").unwrap()
+    }
 
-        Ok(Self {
-            dir: dir.to_string(),
-            searcher: None,
-            query_parser: None,
-            index,
-            index_writer,
-            title,
-            body,
-            url,
-        })
+    fn body(&self) -> Field {
+        self.index.schema().get_field("body").unwrap()
     }
 
     pub fn add_document(
         &mut self,
-        title: String,
         url: String,
+        title: String,
         body: String,
     ) -> Result<u64, TantivyError> {
-        self.index_writer.add_document(doc!(
-            self.title => title,
-            self.url => url,
-            self.body => body,
+        self.index_writer.as_ref().unwrap().add_document(doc!(
+            self.url() => url,
+            self.title() => title,
+            self.body() => body,
         ))
     }
 
     pub fn commit(&mut self) -> Result<u64, TantivyError> {
-        self.index_writer.commit()?;
-
-        let reader = self
-            .index
-            .reader_builder()
-            .reload_policy(ReloadPolicy::Manual)
-            .try_into()?;
-
-        self.searcher = Some(reader.searcher());
-        self.query_parser = Some(QueryParser::for_index(
-            &self.index,
-            vec![self.title, self.body],
-        ));
+        self.index_writer.as_mut().unwrap().commit()?;
 
         println!("Commited `{}` index", self.dir);
+
         Ok(0)
     }
 
-    pub fn search(&self, query: &str) -> Vec<SearchResult> {
+    pub fn search(&mut self, query: &str) -> Result<Vec<SearchResult>, TantivyError> {
+        if self.searcher.is_none() {
+            // TODO: lazy?
+            let reader = self
+                .index
+                .reader_builder()
+                .reload_policy(ReloadPolicy::Manual)
+                .try_into()?;
+
+            self.searcher = Some(reader.searcher());
+
+            self.query_parser = Some(QueryParser::for_index(
+                &self.index,
+                vec![self.url(), self.title(), self.body()],
+            ));
+        }
+
         let mut results = Vec::new();
 
         if let Some(query_parser) = &self.query_parser {
@@ -92,30 +116,26 @@ impl SearchIndex {
                 if let Some(searcher) = &self.searcher {
                     if let Ok(docs) = searcher.search(&query, &TopDocs::with_limit(10)) {
                         if let Ok(snippet_generator) =
-                            SnippetGenerator::create(searcher, &query, self.body)
+                            SnippetGenerator::create(searcher, &query, self.body())
                         {
                             println!("docs={}", docs.len());
                             for (_score, doc_address) in docs {
                                 if let Ok(retrieved_doc) = searcher.doc(doc_address) {
-                                    let title = retrieved_doc
-                                        .get_first(self.title)
-                                        .unwrap()
-                                        .as_text()
-                                        .unwrap()
-                                        .to_string();
                                     let url = retrieved_doc
-                                        .get_first(self.url)
+                                        .get_first(self.url())
                                         .unwrap()
                                         .as_text()
                                         .unwrap()
                                         .to_string();
-                                    let body = retrieved_doc    // FIXME: don't return always
-                                            .get_first(self.body)
-                                            .unwrap()
-                                            .as_text()
-                                            .unwrap()
-                                            .to_string();
-                                    let snippet = snippet_generator // FIXME don't return always
+
+                                    let title = retrieved_doc
+                                        .get_first(self.title())
+                                        .unwrap()
+                                        .as_text()
+                                        .unwrap()
+                                        .to_string();
+
+                                    let snippet = snippet_generator
                                         .snippet_from_doc(&retrieved_doc)
                                         .to_html()
                                         .replace('\n', " ")
@@ -125,7 +145,6 @@ impl SearchIndex {
                                     results.push(SearchResult {
                                         title,
                                         url,
-                                        body,
                                         snippet,
                                     });
                                 }
@@ -135,6 +154,6 @@ impl SearchIndex {
                 }
             }
         }
-        results
+        Ok(results)
     }
 }

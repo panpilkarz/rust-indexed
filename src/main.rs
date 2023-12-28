@@ -20,9 +20,9 @@ fn main() -> tantivy::Result<()> {
     let config: Config =
         toml::from_str(&std::fs::read_to_string("config.toml")?).expect("No config.toml");
 
-    let mut summary_md_index = SearchIndex::new("index_summary_md")?;
-    let mut page_index = SearchIndex::new("index_page")?;
-    let mut code_block_index = SearchIndex::new("index_code_block")?;
+    let mut page_index = SearchIndex::create("index_page")?;
+    let mut summary_md_index = SearchIndex::create("index_summary_md")?;
+    let mut code_block_index = SearchIndex::create("index_code_block")?;
 
     // For each mdbook
     for source in config.sources {
@@ -41,7 +41,7 @@ fn main() -> tantivy::Result<()> {
             let title = format!("{} - {}", chapter_title, source.title);
 
             // Index chapter title
-            summary_md_index.add_document(title.clone(), url.clone(), String::new())?;
+            summary_md_index.add_document(url.clone(), title.clone(), String::new())?;
 
             let mut path = PathBuf::from(&source.directory).join(format!("{}.md", rel_url));
             if let Ok(buf) = std::fs::read_to_string(&path) {
@@ -49,12 +49,12 @@ fn main() -> tantivy::Result<()> {
 
                 // Index chapter md page
                 let (content, code_blocks) = parse_md_page(buf.as_str(), path.to_str().unwrap());
-                page_index.add_document(title.clone(), url.clone(), content)?;
+                page_index.add_document(url.clone(), title.clone(), content)?;
 
                 // Index code blocks found in the chapter
                 for code_block in code_blocks {
                     code_block_index
-                        .add_document(title.clone(), url.clone(), code_block)
+                        .add_document(url.clone(), title.clone(), code_block)
                         .unwrap();
                     total_code_blocks += 1;
                 }
@@ -73,13 +73,17 @@ fn main() -> tantivy::Result<()> {
     page_index.commit()?;
     code_block_index.commit()?;
 
-    for r in summary_md_index.search("await") {
-        println!("{:?}", r);
+    let needle = "tokio";
+
+    for r in summary_md_index.search(needle).unwrap() {
+        dbg!(r);
     }
-    for r in page_index.search("await") {
-        println!("{:?}", r);
+    for r in page_index.search(needle).unwrap() {
+        dbg!(r);
     }
-    code_block_index.search("await");
+    for r in code_block_index.search(needle).unwrap() {
+        dbg!(r);
+    }
 
     Ok(())
 }
