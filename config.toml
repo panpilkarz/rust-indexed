@@ -17,3 +17,8 @@ directory = "mdbooks/comprehensive-rust/src/"
 title = "Rust By Example"
 base_url = "https://doc.rust-lang.org/rust-by-example"
 directory = "mdbooks/rust-by-example/src"
+
+[[sources]]
+title = "Rust vs Python"
+base_url = "https://alice-bob.dev"
+directory = "mdbooks/rust-vs-python/src"

@@ -1,3 +1,4 @@
+use serde::Serialize;
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
 use tantivy::schema::{Field, Schema, STORED, TEXT};
@@ -12,7 +13,7 @@ pub struct SearchIndex {
     query_parser: Option<QueryParser>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct SearchResult {
     pub url: String,
     pub title: String,
@@ -38,15 +39,16 @@ impl SearchIndex {
 
     pub fn open(dir: &str) -> Result<Self, TantivyError> {
         let index = Index::open_in_dir(dir)?;
-
         println!("Opened `{dir}` index");
+
+        let (searcher, query_parser) = SearchIndex::create_searcher(&index);
 
         Ok(Self {
             dir: dir.to_string(),
             index,
-            searcher: None,
+            searcher: Some(searcher),
+            query_parser: Some(query_parser),
             index_writer: None,
-            query_parser: None,
         })
     }
 
@@ -57,6 +59,27 @@ impl SearchIndex {
         schema_builder.add_text_field("body", TEXT | STORED);
 
         schema_builder.build()
+    }
+
+    fn create_searcher(index: &Index) -> (Searcher, QueryParser) {
+        let reader = index
+            .reader_builder()
+            .reload_policy(ReloadPolicy::Manual)
+            .try_into()
+            .unwrap();
+
+        let searcher = reader.searcher();
+
+        let query_parser = QueryParser::for_index(
+            index,
+            vec![
+                index.schema().get_field("url").unwrap(),
+                index.schema().get_field("title").unwrap(),
+                index.schema().get_field("body").unwrap(),
+            ],
+        );
+
+        (searcher, query_parser)
     }
 
     fn url(&self) -> Field {
@@ -86,29 +109,17 @@ impl SearchIndex {
 
     pub fn commit(&mut self) -> Result<u64, TantivyError> {
         self.index_writer.as_mut().unwrap().commit()?;
-
         println!("Commited `{}` index", self.dir);
+
+        let (searcher, query_parser) = SearchIndex::create_searcher(&self.index);
+
+        self.searcher = Some(searcher);
+        self.query_parser = Some(query_parser);
 
         Ok(0)
     }
 
-    pub fn search(&mut self, query: &str) -> Result<Vec<SearchResult>, TantivyError> {
-        if self.searcher.is_none() {
-            // TODO: lazy?
-            let reader = self
-                .index
-                .reader_builder()
-                .reload_policy(ReloadPolicy::Manual)
-                .try_into()?;
-
-            self.searcher = Some(reader.searcher());
-
-            self.query_parser = Some(QueryParser::for_index(
-                &self.index,
-                vec![self.url(), self.title(), self.body()],
-            ));
-        }
-
+    pub fn search(&self, query: &str) -> Result<Vec<SearchResult>, TantivyError> {
         let mut results = Vec::new();
 
         if let Some(query_parser) = &self.query_parser {

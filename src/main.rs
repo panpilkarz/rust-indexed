@@ -1,89 +1,60 @@
-use serde::Deserialize;
-use std::path::PathBuf;
+use axum::extract::{Query, State};
+use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use rust_indexed::indexers::{SearchIndex, SearchResult};
+use serde::{Deserialize, Serialize};
+use std::sync::{Arc, RwLock};
+use tokio::task;
 
-use rust_indexed::indexers::SearchIndex;
-use rust_indexed::parsers::{parse_md_page, parse_summary_md};
+struct AppState {
+    page_index: RwLock<SearchIndex>,
+}
 
-#[derive(Debug, Deserialize)]
-struct IndexedSource {
-    title: String,
-    base_url: String,
-    directory: String,
+#[tokio::main]
+async fn main() {
+    // initialize tracing
+    // tracing_subscriber::fmt::init();
+
+    let app_state = Arc::new(AppState {
+        page_index: RwLock::new(SearchIndex::open("index_page").unwrap()),
+    });
+
+    let app = Router::new()
+        .route("/search/", get(search))
+        .with_state(app_state);
+
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+        .await
+        .unwrap();
+    // tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    axum::serve(listener, app).await.unwrap();
+}
+
+async fn search(
+    Query(params): Query<Params>,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    dbg!(&params);
+    let q = params.q;
+    let _ = params.page.unwrap_or(1);
+
+    let results = task::spawn_blocking(move || state.page_index.read().unwrap().search(&q))
+        .await
+        .unwrap()
+        .unwrap();
+
+    dbg!(&results);
+
+    (StatusCode::OK, Json(SearchResponse { results }))
+}
+
+// the output to our `search` handler
+#[derive(Serialize)]
+struct SearchResponse {
+    results: Vec<SearchResult>,
 }
 
 #[derive(Debug, Deserialize)]
-struct Config {
-    sources: Vec<IndexedSource>,
-}
-
-fn main() -> tantivy::Result<()> {
-    let config: Config =
-        toml::from_str(&std::fs::read_to_string("config.toml")?).expect("No config.toml");
-
-    let mut page_index = SearchIndex::create("index_page")?;
-    let mut summary_md_index = SearchIndex::create("index_summary_md")?;
-    let mut code_block_index = SearchIndex::create("index_code_block")?;
-
-    // For each mdbook
-    for source in config.sources {
-        let path = PathBuf::from(&source.directory).join("SUMMARY.md");
-        println!("Indexing {:?}", path);
-        let buf = std::fs::read_to_string(&path)?;
-
-        // Parse chapters from SUMMARY.md
-        let summary_md = parse_summary_md(&buf);
-        let mut total_pages = 0;
-        let mut total_code_blocks = 0;
-
-        // For each chapter
-        for (chapter_title, rel_url) in summary_md {
-            let url = format!("{}/{}.html", source.base_url, rel_url);
-            let title = format!("{} - {}", chapter_title, source.title);
-
-            // Index chapter title
-            summary_md_index.add_document(url.clone(), title.clone(), String::new())?;
-
-            let mut path = PathBuf::from(&source.directory).join(format!("{}.md", rel_url));
-            if let Ok(buf) = std::fs::read_to_string(&path) {
-                path.pop();
-
-                // Index chapter md page
-                let (content, code_blocks) = parse_md_page(buf.as_str(), path.to_str().unwrap());
-                page_index.add_document(url.clone(), title.clone(), content)?;
-
-                // Index code blocks found in the chapter
-                for code_block in code_blocks {
-                    code_block_index
-                        .add_document(url.clone(), title.clone(), code_block)
-                        .unwrap();
-                    total_code_blocks += 1;
-                }
-                total_pages += 1;
-            } else {
-                eprintln!("Couldn't parse {:?}", path);
-            }
-        }
-        println!(
-            "Indexed {} pages and {} code blocks",
-            total_pages, total_code_blocks
-        );
-    }
-
-    summary_md_index.commit()?;
-    page_index.commit()?;
-    code_block_index.commit()?;
-
-    let needle = "tokio";
-
-    for r in summary_md_index.search(needle).unwrap() {
-        dbg!(r);
-    }
-    for r in page_index.search(needle).unwrap() {
-        dbg!(r);
-    }
-    for r in code_block_index.search(needle).unwrap() {
-        dbg!(r);
-    }
-
-    Ok(())
+struct Params {
+    q: String,
+    page: Option<u32>,
 }
