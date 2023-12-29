@@ -34,6 +34,7 @@ impl Ranking {
     pub fn search(&self, q: &str) -> Vec<SearchResult> {
         let mut urls = HashSet::<String>::new();
         let mut results = Vec::<SearchResult>::new();
+        let mut prev_len: usize;
 
         // 1/3 search full query '"impl trait"'
         let all_words_q = format!("\"{}\"", q);
@@ -47,6 +48,7 @@ impl Ranking {
         results.iter().for_each(|r| {
             urls.insert(r.url.clone());
         });
+        prev_len = results.len();
 
         // 2/3 if no results, search 'impl trait'
         for index in [&self.index_page, &self.index_code] {
@@ -59,12 +61,14 @@ impl Ranking {
             }
         }
 
-        results.iter().for_each(|r| {
+        results.iter().skip(prev_len).for_each(|r| {
             urls.insert(r.url.clone());
         });
-
+        
         // 3/3 if no results, fuzzy search in title and then in body
         if results.is_empty() {
+            prev_len = results.len();
+
             for index in [&self.index_page, &self.index_code] {
                 if let Ok(res) = index.fuzzy_search_title(q) {
                     let res: Vec<SearchResult> = res
@@ -75,7 +79,7 @@ impl Ranking {
                 }
             }
 
-            results.iter().for_each(|r| {
+            results.iter().skip(prev_len).for_each(|r| {
                 urls.insert(r.url.clone());
             });
 
