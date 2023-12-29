@@ -22,7 +22,11 @@ fn parse_include(s: &str, md_dir: &str) -> Option<String> {
             // ../src/main.rs:anchor
             let path = PathBuf::from(md_dir).join(filename.split(':').next().unwrap());
             if let Ok(buf) = std::fs::read_to_string(&path) {
-                return Some(buf);
+                let code: Vec<_> = buf
+                    .lines()
+                    .filter(|&line| !line.starts_with("// "))
+                    .collect();
+                return Some(code.join("\n"));
             }
 
             eprintln!("Couldn't open {:?}", path);
@@ -56,7 +60,6 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
     for line in s.split('\n') {
         // Code block start/end
         if line.starts_with("```") {
-            // FIXME: ```rust
             if in_code {
                 if !code.is_empty() {
                     code_blocks.push(code.trim().to_string());
@@ -65,7 +68,9 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
                 in_code = false;
                 continue;
             }
-            in_code = true;
+            if line.starts_with("```rust") {
+                in_code = true;
+            }
             continue;
         }
 
@@ -140,7 +145,7 @@ let x = 1;
 ```
 
 # Example code 2
-```shell
+```rust
 loop {
     let a = String::new();
 }
@@ -173,20 +178,26 @@ loop {
     fn test_parse_page_with_include() {
         let (body, code_blocks) = parse_md_page(
             "
-```
+```nok
 {{#include }}
 ```
+```rust
+{{#include }}
 ```
+```rust ok
 {{#include src/main.rs}}
 ```
-```
+```rust ok
 {{#include  src/parsers.rs  }}
 ```
+```rust ok
+{{#rustdoc_include src/index.rs}}
 ```
-{{#rustdoc_include src/indexers.rs}}
+```rust ok
+{{ #include src/index.rs }}
 ```
-```
-{{ #include src/indexers.rs }}
+```shell nok
+{{ #include src/index.rs }}
 ```
         ",
             ".",

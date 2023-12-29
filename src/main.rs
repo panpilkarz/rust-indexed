@@ -1,12 +1,16 @@
 use axum::extract::{Query, State};
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
-use rust_indexed::indexers::{SearchIndex, SearchResult};
+use rust_indexed::index::SearchResult;
+use rust_indexed::ranking::Ranking;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
+use std::thread::sleep;
+use std::time::Duration;
+use std::time::Instant;
 use tokio::task;
 
 struct AppState {
-    page_index: RwLock<SearchIndex>,
+    page_index: RwLock<Ranking>,
 }
 
 #[tokio::main]
@@ -15,7 +19,7 @@ async fn main() {
     // tracing_subscriber::fmt::init();
 
     let app_state = Arc::new(AppState {
-        page_index: RwLock::new(SearchIndex::open("index_page").unwrap()),
+        page_index: RwLock::new(Ranking::default()),
     });
 
     let app = Router::new()
@@ -33,24 +37,36 @@ async fn search(
     Query(params): Query<Params>,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    dbg!(&params);
     let q = params.q;
     let _ = params.page.unwrap_or(1);
 
-    let results = task::spawn_blocking(move || state.page_index.read().unwrap().search(&q))
-        .await
-        .unwrap()
-        .unwrap();
+    let start = Instant::now();
 
-    dbg!(&results);
+    let results = task::spawn_blocking(move || {
+        sleep(Duration::from_millis(200));
+        state.page_index.read().unwrap().search(&q)
+    })
+    .await
+    .unwrap();
 
-    (StatusCode::OK, Json(SearchResponse { results }))
+    let duration = start.elapsed();
+
+    println!("{} results. duration = {:?}", results.len(), duration);
+
+    (
+        StatusCode::OK,
+        Json(SearchResponse {
+            results,
+            duration_milis: duration.as_millis(),
+        }),
+    )
 }
 
 // the output to our `search` handler
 #[derive(Serialize)]
 struct SearchResponse {
     results: Vec<SearchResult>,
+    duration_milis: u128,
 }
 
 #[derive(Debug, Deserialize)]
