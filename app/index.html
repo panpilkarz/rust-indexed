@@ -10,26 +10,49 @@
 <body>
 
 <div id="header" class="d-flex justify-content-center mt-3">
-    <img src="logo1.png" class="img-fluid">
+    <img id="header-img" src="logo1.png" class="img-fluid" style="width: 580px">
 </div>
 
 <div class="container mt-4" style="max-width: 600px;">
-    
     <form id="searchForm" class="mb-4">
         <div class="input-group">
-            <!-- <img src="logo0.png" style="height: 38px; margin-right: 8px;"> -->
             <input type="text" id="searchInput" class="form-control" placeholder="Enter your query (ie. async, tokio, lifetimes) and hit Enter" autofocus>
         </div>
     </form>
 </div>
 
-<div class="container-fluid" style="margin-top: 40px;">
+<div class="container mt-4" style="margin-top: 40px;max-width: 600px;">
     <div id="searchResults" class="list-group"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    function create_result_row(result) {
+        let html = `
+        <div class="row border-bottom" style="margin-bottom: 14px">
+            <h4><a href="${result.url}" class="text-primary" style="text-decoration:none">${result.title}</a></h4>
+            <p><a href="${result.url}" class="text-muted">${result.url}</a></p>
+        `;
+
+        if (result.snippet) {
+            html += `
+            <p>${result.snippet}</p>
+            `;
+        }
+
+        if (result.body) {
+            html += `
+            <p><pre>${result.body}</pre></p>
+            `;   
+        }
+
+        html += `
+        </div>
+        `;
+        return html;
+    }
+
     document.getElementById('searchForm').addEventListener('submit', function (event) {
         event.preventDefault();
 
@@ -41,30 +64,36 @@
     });
 
     function search(query) {
-        // Mocking the search endpoint with a simple delay
-        setTimeout(() => {
-            const results = [
-                'Result 1: Lorem ipsum dolor sit amet',
-                'Result 2: consectetur adipiscing elit',
-                'Result 3: sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
-            ];
+        fetch("/search/?q=" + query + "&page=0")
+        .then(response => {
+            if (!response.ok) {
+                console.log('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            var image = document.getElementById("header-img");
+            image.src = 'logo3.png';
 
             // Hide header
-            const headerContainer = document.getElementById('header');
-            headerContainer.innerHTML = '';
+            // const headerContainer = document.getElementById('header');
+            // headerContainer.innerHTML = '';
 
             // Display the results in the list group
             const resultsContainer = document.getElementById('searchResults');
             resultsContainer.innerHTML = '';
 
-            results.forEach((result) => {
-                const listItem = document.createElement('div');
-                listItem.className = 'list-group-item';
-                listItem.textContent = result;
-                resultsContainer.appendChild(listItem);
+            data.results.forEach((result) => {
+                console.log(result);
+                resultsContainer.innerHTML += create_result_row(result);
             });
-        }, 200); // Simulate a 0.2-second delay for the search
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
+
+    search("async");
 </script>
 
 </body>

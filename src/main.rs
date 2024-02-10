@@ -8,6 +8,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 use tokio::task;
+use tower_http::services::ServeDir;
 
 struct AppState {
     page_index: RwLock<Ranking>,
@@ -23,13 +24,14 @@ async fn main() {
     });
 
     let app = Router::new()
-        .route("/search/", get(search))
+        .route("/search/", get(search)) // API
+        .nest_service("/app", ServeDir::new("app")) // Static
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
-    // tracing::debug!("listening on {}", listener.local_addr().unwrap());
+
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -37,6 +39,7 @@ async fn search(
     Query(params): Query<Params>,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
+    let q_debug = params.q.clone();
     let q = params.q;
     let _ = params.page.unwrap_or(1);
 
@@ -51,7 +54,12 @@ async fn search(
 
     let duration = start.elapsed();
 
-    println!("{} results. duration = {:?}", results.len(), duration);
+    println!(
+        "{} results. duration = {:?} query = `{}`",
+        results.len(),
+        duration,
+        q_debug
+    );
 
     (
         StatusCode::OK,

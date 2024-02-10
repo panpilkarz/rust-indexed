@@ -64,7 +64,7 @@ impl Ranking {
         results.iter().skip(prev_len).for_each(|r| {
             urls.insert(r.url.clone());
         });
-        
+
         // 3/3 if no results, fuzzy search in title and then in body
         if results.is_empty() {
             prev_len = results.len();
