@@ -25,7 +25,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/search/", get(search)) // API
-        .nest_service("/app", ServeDir::new("app")) // Static
+        .nest_service("/", ServeDir::new("app")) // Static (for local development)
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")

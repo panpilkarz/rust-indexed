@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use tantivy::query;
+
 use crate::index::{SearchIndex, SearchResult};
 use crate::{INDEX_CODE_DIR, INDEX_PAGE_DIR};
 
@@ -93,6 +95,13 @@ impl Ranking {
                 }
             }
         }
+
+        let highligthed = format!("<b>{}</b>", q);
+        results.iter_mut().for_each(|r| {
+            if r.body.is_some() {
+                r.body = Some(String::from(r.body.as_ref().unwrap()).replace(q, highligthed.as_str()))
+            }
+        });
 
         results
     }

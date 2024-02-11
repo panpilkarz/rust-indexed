@@ -5,34 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rust Indexed - search in Rust books and tutorials</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" href="logo0.png" type="image/x-icon">
+    <link rel="icon" href="fav.png" type="image/x-icon">
+    <style>
+        img#header-img {width: 580px;}
+        div#search-form-container {max-width: 600px; margin: 20px auto}
+        div#search-results-container {max-width: 600px}
+        button#search-more {margin-bottom: 14px}
+        div.search-res-row {margin-bottom: 14px}
+        a.search-res-title {text-decoration: none}
+        a.search-res-url {text-decoration: none}
+    </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
-<div id="header" class="d-flex justify-content-center mt-3">
-    <img id="header-img" src="logo1.png" class="img-fluid" style="width: 580px">
+<div id="header" class="d-flex justify-content-center">
+    <a href="/">
+        <img id="header-img" src="head-big.png" class="img-fluid">
+    </a>
 </div>
 
-<div class="container mt-4" style="max-width: 600px;">
-    <form id="searchForm" class="mb-4">
+<div id="search-form-container" class="container">
+    <form id="search-form">
         <div class="input-group">
-            <input type="text" id="searchInput" class="form-control" placeholder="Enter your query (ie. async, tokio, lifetimes) and hit Enter" autofocus>
+            <input type="text" id="search-input" class="form-control" placeholder="Enter your query (ie. async, tokio, lifetimes) and hit Enter" autofocus>
         </div>
     </form>
 </div>
 
-<div class="container mt-4" style="margin-top: 40px;max-width: 600px;">
-    <div id="searchResults" class="list-group"></div>
+<div id="search-results-container" class="container">
+    <div id="search-results"></div>
 </div>
+
+<div class="d-grid gap-2 col-2 mx-auto">
+    <button id="search-more" class="btn btn-primary d-none" type="button">More &raquo;</button>
+</div>
+
+<footer class="mt-auto">
+    <ul class="nav justify-content-center border-top">
+        <li class="nav-item"><a href="mailto:hello@rust-indexed.com" class="nav-link px-2 text-body-secondary">Hello</a></li>
+        <li class="nav-item"><a href="https://github.com/panpilkarz/rust-indexed" class="nav-link px-2 text-body-secondary">Github</a></li>
+    </ul>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    let page = 0;
+    let query = null;
     function create_result_row(result) {
         let html = `
-        <div class="row border-bottom" style="margin-bottom: 14px">
-            <h4><a href="${result.url}" class="text-primary" style="text-decoration:none">${result.title}</a></h4>
-            <p><a href="${result.url}" class="text-muted">${result.url}</a></p>
+        <div class="row border-bottom search-res-row">
+            <h4><a href="${result.url}" class="text-primary search-res-title">${result.title}</a></h4>
+            <p><a href="${result.url}" class="text-muted search-res-url">${result.url}</a></p>
         `;
 
         if (result.snippet) {
@@ -53,35 +77,33 @@
         return html;
     }
 
-    document.getElementById('searchForm').addEventListener('submit', function (event) {
+    document.getElementById('search-form').addEventListener('submit', function (event) {
         event.preventDefault();
+        document.getElementById('search-results').innerHTML = "";
+        document.getElementById('header-img').src = "head-small.png";
 
-        // Get the query from the input field
-        const query = document.getElementById('searchInput').value;
+        query = document.getElementById('search-input').value;
+        search(query);
+    });
 
-        // Perform the search
+    document.getElementById('search-more').addEventListener('click', function (event) {
+        event.preventDefault();
+        page += 1;
         search(query);
     });
 
     function search(query) {
-        fetch("/search/?q=" + query + "&page=0")
+        fetch(`/search/?q=${query}&page=${page}`)
         .then(response => {
             if (!response.ok) {
                 console.log('Network response was not ok');
             }
+            document.getElementById('search-more').classList.remove("d-none");
+
             return response.json();
         })
         .then(data => {
-            var image = document.getElementById("header-img");
-            image.src = 'logo3.png';
-
-            // Hide header
-            // const headerContainer = document.getElementById('header');
-            // headerContainer.innerHTML = '';
-
-            // Display the results in the list group
-            const resultsContainer = document.getElementById('searchResults');
-            resultsContainer.innerHTML = '';
+            const resultsContainer = document.getElementById('search-results');
 
             data.results.forEach((result) => {
                 console.log(result);
