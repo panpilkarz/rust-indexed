@@ -33,8 +33,14 @@
     </form>
 </div>
 
-
 <div id="search-results-container" class="container">
+    <div id="alert" class="alert alert-danger d-none" role="alert">
+        Ups, something went wrong :/
+    </div>
+    <div id="search-results"></div>
+</div>
+
+<div class="mx-auto" style="margin: auto">
     <div id="welcome" class="card text-bg-info">
         <div class="card-header">
           Search in Rust books and tutorials!
@@ -47,8 +53,8 @@
             <p>Enjoy!</p>
         </blockquote>
         </div>
-      </div>
-    <div id="search-results"></div>
+    </div>
+    <button id="search-more" class="btn btn-primary d-none" type="button">More &raquo;</button>
 </div>
 
 <div class="d-grid gap-2 col-2 mx-auto">
@@ -115,6 +121,7 @@
         document.getElementById('search-results').innerHTML = "";
         document.getElementById('welcome').style.display = "none";
         document.getElementById('header-img').src = "head-small.png";
+        document.getElementById("alert").classList.add('d-none');
         searchMore.classList.add("d-none");
         searchInput.select();
         results = [];
@@ -137,6 +144,7 @@
     }
 
     function search() {
+
         if (results.length) {
             render_results();
             return;
@@ -154,6 +162,7 @@
             render_results();
         })
         .catch(error => {
+            document.getElementById("alert").classList.remove('d-none');
             console.error('Error:', error);
         });
     }
