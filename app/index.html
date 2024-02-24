@@ -13,7 +13,8 @@
         button#search-more {margin-bottom: 14px}
         div.search-res-row {margin-bottom: 14px}
         a.search-res-title {text-decoration: none}
-        a.search-res-url {text-decoration: none}
+        a.search-res-url {font-size: 0.8rem}
+        #welcome blockquote {font-size: 0.9rem}
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -32,7 +33,21 @@
     </form>
 </div>
 
+
 <div id="search-results-container" class="container">
+    <div id="welcome" class="card text-bg-info">
+        <div class="card-header">
+          Search in Rust books and tutorials!
+        </div>
+        <div class="card-body">
+          <blockquote class="blockquote mb-0">
+            <p><a href="">Rust Indexed</a> is built on top of <a href="https://docs.rs/tantivy/latest/tantivy/">Tantivy</a> and has various Rust books and tutorials indexed.</p>
+            <p>If you're an author of a Rust book and would like to add the book to the index: <a href="mailto:hello@rust-indexed.com">hello@rust-indexed.com</a></p>
+            <p>To search for code, prepend the query with `code` ie. "code filter_map".</p>
+            <p>Enjoy!</p>
+        </blockquote>
+        </div>
+      </div>
     <div id="search-results"></div>
 </div>
 
@@ -52,6 +67,12 @@
 <script>
     let page = 0;
     let query = null;
+    let results = [];
+
+    const resultsContainer = document.getElementById('search-results');
+    const searchMore = document.getElementById('search-more');
+    const searchInput = document.getElementById('search-input');
+
     function create_result_row(result) {
         let html = `
         <div class="row border-bottom search-res-row">
@@ -79,43 +100,71 @@
 
     document.getElementById('search-form').addEventListener('submit', function (event) {
         event.preventDefault();
-        document.getElementById('search-results').innerHTML = "";
-        document.getElementById('header-img').src = "head-small.png";
-
-        query = document.getElementById('search-input').value;
-        search(query);
+        query = searchInput.value;
+        window.location.hash = query;
+        render_search();
     });
 
-    document.getElementById('search-more').addEventListener('click', function (event) {
+    searchMore.addEventListener('click', function (event) {
         event.preventDefault();
         page += 1;
-        search(query);
+        search();
     });
 
-    function search(query) {
-        fetch(`/search/?q=${query}&page=${page}`)
+    function render_search() {
+        document.getElementById('search-results').innerHTML = "";
+        document.getElementById('welcome').style.display = "none";
+        document.getElementById('header-img').src = "head-small.png";
+        searchMore.classList.add("d-none");
+        searchInput.select();
+        results = [];
+        search();
+    }
+
+    function render_results() {
+        let slice = results.slice(page * 10 , (page + 1) * 10);
+
+        if (slice.length >= 10) {
+            searchMore.classList.remove("d-none");
+        }
+        else {
+            searchMore.classList.add("d-none");
+        }
+
+        slice.forEach((result) => {
+            resultsContainer.innerHTML += create_result_row(result);
+        });
+    }
+
+    function search() {
+        if (results.length) {
+            render_results();
+            return;
+        }
+
+        fetch(`/search/?q=${query}`)
         .then(response => {
             if (!response.ok) {
                 console.log('Network response was not ok');
             }
-            document.getElementById('search-more').classList.remove("d-none");
-
             return response.json();
         })
         .then(data => {
-            const resultsContainer = document.getElementById('search-results');
-
-            data.results.forEach((result) => {
-                console.log(result);
-                resultsContainer.innerHTML += create_result_row(result);
-            });
+            results = data.results;
+            render_results();
         })
         .catch(error => {
             console.error('Error:', error);
         });
     }
 
-    search("async");
+    if (window.location.hash.length > 1) {
+        query = window.location.hash.slice(1);
+        searchInput.value = decodeURIComponent(query);
+        render_search();
+    }
+
+    // search("async");
 </script>
 
 </body>

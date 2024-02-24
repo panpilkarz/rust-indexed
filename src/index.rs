@@ -143,7 +143,7 @@ impl SearchIndex {
         if let Some(query_parser) = &self.query_parser {
             if let Ok(query) = query_parser.parse_query(query) {
                 if let Some(searcher) = &self.searcher {
-                    if let Ok(docs) = searcher.search(&query, &TopDocs::with_limit(10)) {
+                    if let Ok(docs) = searcher.search(&query, &TopDocs::with_limit(100)) {
                         if let Ok(mut snippet_generator) =
                             SnippetGenerator::create(searcher, &query, self.body())
                         {

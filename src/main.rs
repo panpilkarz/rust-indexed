@@ -1,7 +1,7 @@
 use axum::extract::{Query, State};
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use rust_indexed::index::SearchResult;
-use rust_indexed::ranking::Ranking;
+use rust_indexed::ranking::{Ranking, SearchFlags};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
 use std::thread::sleep;
@@ -40,14 +40,23 @@ async fn search(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     let q_debug = params.q.clone();
-    let q = params.q;
+    let mut search_flags = SearchFlags::DEFAULT;
+
+    let q = match params.q.starts_with("code ") {
+        false => params.q,
+        true => {
+            search_flags |= SearchFlags::CODE_ONLY;
+            params.q[5..].to_string()
+        }
+    };
+
     let _ = params.page.unwrap_or(1);
 
     let start = Instant::now();
 
     let results = task::spawn_blocking(move || {
         sleep(Duration::from_millis(200));
-        state.page_index.read().unwrap().search(&q)
+        state.page_index.read().unwrap().search(&q, search_flags)
     })
     .await
     .unwrap();
