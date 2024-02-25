@@ -1,0 +1,397 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Item 25: Manage your dependency graph - Effective Rust</title>
+
+
+        <!-- Custom HTML head -->
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-23228806-1']);
+          _gaq.push(['_trackPageview']);
+        
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+        <meta name="description" content="A collection of specific ways to improve your use of Rust">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="src/third_party/ferris/ferris.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="cover.html"><strong aria-hidden="true">1.</strong> Cover</a></li><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">2.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">3.</strong> Types</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="use-types.html"><strong aria-hidden="true">3.1.</strong> Item 1: Use the type system to express your data structures</a></li><li class="chapter-item expanded "><a href="use-types-2.html"><strong aria-hidden="true">3.2.</strong> Item 2: Use the type system to express common behaviour</a></li><li class="chapter-item expanded "><a href="transform.html"><strong aria-hidden="true">3.3.</strong> Item 3: Avoid matching Option and Result</a></li><li class="chapter-item expanded "><a href="errors.html"><strong aria-hidden="true">3.4.</strong> Item 4: Prefer idiomatic Error variants</a></li><li class="chapter-item expanded "><a href="std-traits.html"><strong aria-hidden="true">3.5.</strong> Item 5: Familiarize yourself with standard traits</a></li><li class="chapter-item expanded "><a href="casts.html"><strong aria-hidden="true">3.6.</strong> Item 6: Understand type conversions</a></li><li class="chapter-item expanded "><a href="newtype.html"><strong aria-hidden="true">3.7.</strong> Item 7: Embrace the newtype pattern</a></li><li class="chapter-item expanded "><a href="builders.html"><strong aria-hidden="true">3.8.</strong> Item 8: Use builders for complex types</a></li><li class="chapter-item expanded "><a href="references.html"><strong aria-hidden="true">3.9.</strong> Item 9: Familiarize yourself with reference and pointer types</a></li><li class="chapter-item expanded "><a href="iterators.html"><strong aria-hidden="true">3.10.</strong> Item 10: Consider using iterator transforms instead of explicit loops</a></li><li class="chapter-item expanded "><a href="raii.html"><strong aria-hidden="true">3.11.</strong> Item 11: Implement the Drop trait for RAII patterns</a></li><li class="chapter-item expanded "><a href="generics.html"><strong aria-hidden="true">3.12.</strong> Item 12: Prefer generics to trait objects</a></li><li class="chapter-item expanded "><a href="default-impl.html"><strong aria-hidden="true">3.13.</strong> Item 13: Use default implementations to minimize required trait methods</a></li></ol></li><li class="chapter-item expanded "><a href="concepts.html"><strong aria-hidden="true">4.</strong> Concepts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="lifetimes.html"><strong aria-hidden="true">4.1.</strong> Item 14: Understand lifetimes</a></li><li class="chapter-item expanded "><a href="borrows.html"><strong aria-hidden="true">4.2.</strong> Item 15: Understand the borrow checker</a></li><li class="chapter-item expanded "><a href="unsafe.html"><strong aria-hidden="true">4.3.</strong> Item 16: Avoid writing unsafe code</a></li><li class="chapter-item expanded "><a href="deadlock.html"><strong aria-hidden="true">4.4.</strong> Item 17: Be wary of shared-state parallelism</a></li><li class="chapter-item expanded "><a href="panic.html"><strong aria-hidden="true">4.5.</strong> Item 18: Don't panic</a></li><li class="chapter-item expanded "><a href="reflection.html"><strong aria-hidden="true">4.6.</strong> Item 19: Avoid reflection</a></li><li class="chapter-item expanded "><a href="optimize.html"><strong aria-hidden="true">4.7.</strong> Item 20: Avoid the temptation to over-optimize</a></li></ol></li><li class="chapter-item expanded "><a href="deps.html"><strong aria-hidden="true">5.</strong> Dependencies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.1.</strong> Item 21: Understand what semantic versioning promises</a></li><li class="chapter-item expanded "><a href="visibility.html"><strong aria-hidden="true">5.2.</strong> Item 22: Minimize visibility</a></li><li class="chapter-item expanded "><a href="wildcard.html"><strong aria-hidden="true">5.3.</strong> Item 23: Avoid wildcard imports</a></li><li class="chapter-item expanded "><a href="re-export.html"><strong aria-hidden="true">5.4.</strong> Item 24: Re-export dependencies whose types appear in your API</a></li><li class="chapter-item expanded "><a href="dep-graph.html" class="active"><strong aria-hidden="true">5.5.</strong> Item 25: Manage your dependency graph</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">5.6.</strong> Item 26: Be wary of feature creep</a></li></ol></li><li class="chapter-item expanded "><a href="tooling.html"><strong aria-hidden="true">6.</strong> Tooling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="documentation.html"><strong aria-hidden="true">6.1.</strong> Item 27: Document public interfaces</a></li><li class="chapter-item expanded "><a href="macros.html"><strong aria-hidden="true">6.2.</strong> Item 28: Use macros judiciously</a></li><li class="chapter-item expanded "><a href="clippy.html"><strong aria-hidden="true">6.3.</strong> Item 29: Listen to Clippy</a></li><li class="chapter-item expanded "><a href="testing.html"><strong aria-hidden="true">6.4.</strong> Item 30: Write more than unit tests</a></li><li class="chapter-item expanded "><a href="use-tools.html"><strong aria-hidden="true">6.5.</strong> Item 31: Take advantage of the tooling ecosystem</a></li><li class="chapter-item expanded "><a href="ci.html"><strong aria-hidden="true">6.6.</strong> Item 32: Set up a continuous integration (CI) system</a></li></ol></li><li class="chapter-item expanded "><a href="beyond-std.html"><strong aria-hidden="true">7.</strong> Beyond Standard Rust</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="no-std.html"><strong aria-hidden="true">7.1.</strong> Item 33: Consider making library code no_std compatible</a></li><li class="chapter-item expanded "><a href="ffi.html"><strong aria-hidden="true">7.2.</strong> Item 34: Control what crosses FFI boundaries</a></li><li class="chapter-item expanded "><a href="bindgen.html"><strong aria-hidden="true">7.3.</strong> Item 35: Prefer bindgen to manual FFI mappings</a></li></ol></li><li class="chapter-item expanded "><a href="indexing.html"><strong aria-hidden="true">8.</strong> Index</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Effective Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="item-25-manage-your-dependency-graph"><a class="header" href="#item-25-manage-your-dependency-graph">Item 25: Manage your dependency graph</a></h1>
+<p>Like most modern programming languages, Rust makes it easy to pull in external libraries, in the form of <em>crates</em>.  By
+default, <a name="a001"></a>Cargo will:</p>
+<ul>
+<li>download any crates named in the <code>[dependencies]</code> section of your <a name="a002"></a><code>Cargo.toml</code> file from
+<a name="a003"></a><a href="https://crates.io"><code>crates.io</code></a>,</li>
+<li>finding versions that match the preferences configured in <code>Cargo.toml</code>.</li>
+</ul>
+<p>There are a few subtleties lurking underneath this simple statement.  The first thing to notice is that crate names form
+a single flat namespace (and this global namespace also overlaps with the names of <em><a name="a004"></a>features</em> in a crate, see <a href="features.html">Item 26</a>). Names are generally allocated on a first-come, first-served basis, so you may find that your preferred name for a
+public crate is already taken.  (However, name-squatting – reserving a crate name by pre-registering an empty
+crate – is frowned upon, unless you really are going to release in the near future.)</p>
+<p>As a minor wrinkle, there's also a slight difference between what's allowed as a crate name in this namespace, and
+what's allowed as an identifier in code: a crate can be named <code>some-crate</code> but it will appear in code as <code>some_crate</code>
+(with an underscore).  To put it another way: if you see <code>some_crate</code> in code, the corresponding crate name may be
+either <code>some-crate</code> or <code>some_crate</code>.</p>
+<p>The second aspect to be aware of is Cargo's <a href="https://doc.rust-lang.org/cargo/reference/resolver.html">version selection
+algorithm</a>. Each <code>Cargo.toml</code> dependency line specifies an
+acceptable range of versions, according to semver (<a href="semver.html">Item 21</a>) rules, and Cargo takes this into account when the same
+crate appears in multiple places in the dependency graph.  If the acceptable ranges overlap and are
+<a name="a005"></a>semver-compatible, then Cargo will pick the most recent version of the crate within the
+overlap.</p>
+<p>However, if there is no semver-compatible overlap, then Cargo will build multiple copies of the dependency at
+different versions.  This can lead to confusion if the dependency is exposed in some way rather than just being used
+internally (<a href="re-export.html">Item 24</a>) – the compiler will treat the two versions as being distinct crates, but its error
+messages won't necessarily make that clear.</p>
+<p>Allowing multiple versions of a crate can also go wrong if the crate includes C/<a name="a006"></a>C++ code accessed via Rust's
+<a name="a007"></a>FFI mechanisms (<a href="ffi.html">Item 34</a>) . The Rust toolchain can internally disambiguate distinct versions of Rust code, but any
+included C/C++ code is subject to the <a name="a008"></a><a href="https://en.wikipedia.org/wiki/One_Definition_Rule"><em>one definition
+rule</em></a>: there can only be a single version of any function, constant
+or global variable.  This is most commonly encountered with the <a name="a009"></a><a href="https://crates.io/crates/ring"><code>ring</code></a>
+cryptographic library, because it includes parts of the <a name="a010"></a><a href="https://boringssl.googlesource.com/boringssl/">BoringSSL
+library</a> (which is written in C and assembler).</p>
+<p>The third subtlety of Cargo's resolution process to be aware of is <em><a name="a011"></a>feature unification</em>: the features that get
+activated for a dependent crate are the <em>union</em> of the features selected by different places in the dependency graph;
+see <a href="features.html">Item 26</a> for more details.</p>
+<p>Once Cargo has picked acceptable versions for all dependencies, its choices are recorded in the <a name="a012"></a><code>Cargo.lock</code> file.
+Subsequent builds will then re-use the choices encoded in <code>Cargo.lock</code>, so that the build is stable and no new downloads
+are needed.</p>
+<p>This leaves you with a choice: should you commit your <code>Cargo.lock</code> files into version control or not?</p>
+<p>The <a href="https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries">advice from the Cargo
+developers</a>
+is that:</p>
+<ul>
+<li>Things that produce a final product, namely applications and binaries, should commit <code>Cargo.lock</code> to ensure a
+deterministic build.</li>
+<li>Library crates should <em>not</em> commit a <code>Cargo.lock</code> file, because it's irrelevant to any downstream consumers of the
+library – they will have their own <code>Cargo.lock</code> file; <strong>be aware that the <code>Cargo.lock</code> file for a library crate
+is ignored by library users</strong>.</li>
+</ul>
+<p>Even for a library crate, it can be helpful to have a checked-in <code>Cargo.lock</code> file to ensure that regular builds and
+<a name="a013"></a>continuous integration (<a href="ci.html">Item 32</a>) don't have a moving target.  Although the promises of <a name="a014"></a>semantic versioning
+(<a href="semver.html">Item 21</a>) should prevent failures in theory, mistakes happen in practice and it's frustrating to have builds that fail
+because someone somewhere recently changed a dependency of a dependency.</p>
+<p>However, <strong>if you version control <code>Cargo.lock</code>, set up a process to handle upgrades</strong> (such as GitHub's
+<a name="a015"></a><a href="https://github.com/dependabot">Dependabot</a>). If you don't, your dependencies will stay pinned to versions that
+get older, outdated and potentially insecure.</p>
+<p>Pinning versions with a checked-in <code>Cargo.lock</code> file doesn't avoid the pain of handling dependency upgrades, but it does
+mean that you can handle them at a time of your own choosing, rather than immediately when the upstream crate
+changes. There's also some fraction of dependency upgrade problems that go away on their own: a crate that's released
+with a problem often gets a second, fixed, version released in a short space of time, and a batched upgrade process
+might only see the latter version.</p>
+<h2 id="version-specification"><a class="header" href="#version-specification">Version Specification</a></h2>
+<p>The version specification clause for a dependency defines a range of allowed versions, according to the
+<a href="https://doc.rust-lang.org/cargo/reference/resolver.html#semver-compatibility">rules explained in the Cargo book</a>.</p>
+<ul>
+<li><strong>Avoid too-specific a version dependency</strong>: pinning to a specific version (<code>&quot;=1.2.3&quot;</code>) is <em>usually</em> a bad idea: you
+don't see newer versions (potentially including security fixes), and you dramatically narrow the potential overlap
+range with other crates in the graph that rely on the same dependency (recall that Cargo only allows a single version
+of a crate to be used within a semver-compatible range).</li>
+<li><strong>Avoid too-general a version dependency</strong>: it's <em>possible</em> to specify a version dependency (<code>&quot;*&quot;</code>) that allows
+non-semver compatible versions to be included, but it's a bad idea: do you really mean that the crate can completely
+change every aspect of its API and your code will still work?  Thought not.</li>
+</ul>
+<p>The most common Goldilocks specification is to allow semver-compatible versions (<code>&quot;1.*&quot;</code>) of a crate, possibly with a
+specific minimum version that includes a feature or fix that you require (<code>&quot;^1.4.23&quot;</code>)</p>
+<h2 id="solving-problems-with-tooling"><a class="header" href="#solving-problems-with-tooling">Solving Problems with Tooling</a></h2>
+<p><a href="use-tools.html">Item 31</a> recommends that you take advantage of the range of tools that are available within the Rust ecosystem; this
+section describes some dependency graph problems where tools can help.</p>
+<p>The compiler will tell you pretty quickly if you use a dependency in your code, but don't include that dependency in
+<code>Cargo.toml</code>.  But what about the other way around?  If there's a dependency in <code>Cargo.toml</code> that you <em>don't</em> use in
+your code – or more likely, <em>no longer</em> use in your code – then Cargo will go on with its business.  The
+<a name="a016"></a><a href="https://crates.io/crates/cargo-udeps"><code>cargo-udeps</code></a> tool is designed to solve exactly this problem: it warns you
+when your <code>Cargo.toml</code> includes an unused dependency (&quot;udep&quot;).</p>
+<p>A more versatile tool is <a name="a017"></a><a href="https://crates.io/crates/cargo-deny"><code>cargo-deny</code></a>, which analyzes your dependency graph
+to detect a variety of potential problems across the full set of transitive dependencies:</p>
+<ul>
+<li>Dependencies that have known security problems in the included version.</li>
+<li>Dependencies that are covered by an unacceptable <a name="a018"></a>license.</li>
+<li>Dependencies that are just unacceptable.</li>
+<li>Dependencies that are included in multiple different versions across the dependency tree.</li>
+</ul>
+<p>Each of these features can be configured and can have exceptions specified; the latter inevitably becomes necessary for
+large projects, particularly for the multiple-version warning.</p>
+<p>These tools can be run as a one-off, but it's better to ensure they're executed regularly and reliably by including them
+in your <a name="a019"></a>continuous integration system (<a href="ci.html">Item 32</a>).  This helps to catch newly-introduced problems – including
+problems that may have been introduced outside of your code, in an upstream dependency (for example, a newly reported
+vulnerability).</p>
+<p>If one of these tools does report a problem, it can be difficult to figure out exactly where in the dependency graph the
+problem arises.  The <a name="a020"></a><a href="https://doc.rust-lang.org/cargo/commands/cargo-tree.html"><code>cargo tree</code></a> command
+that's included with <code>cargo</code> helps here; it shows the dependency graph as a tree structure.</p>
+<pre><code>dep-graph v0.1.0
+├── dep-lib v0.1.0
+│   └── rand v0.7.3
+│       ├── getrandom v0.1.16
+│       │   ├── cfg-if v1.0.0
+│       │   └── libc v0.2.94
+│       ├── libc v0.2.94
+│       ├── rand_chacha v0.2.2
+│       │   ├── ppv-lite86 v0.2.10
+│       │   └── rand_core v0.5.1
+│       │       └── getrandom v0.1.16 (*)
+│       └── rand_core v0.5.1 (*)
+└── rand v0.8.3
+    ├── libc v0.2.94
+    ├── rand_chacha v0.3.0
+    │   ├── ppv-lite86 v0.2.10
+    │   └── rand_core v0.6.2
+    │       └── getrandom v0.2.3
+    │           ├── cfg-if v1.0.0
+    │           └── libc v0.2.94
+    └── rand_core v0.6.2 (*)
+</code></pre>
+<p><code>cargo tree</code> includes a variety of options that can help to solve specific problems, including:</p>
+<ul>
+<li><code>--invert</code> shows what depends <em>on</em> a specific package, helping you to focus on a particular problematic dependency.</li>
+<li><code>--edges features</code> shows what crate features are activated by a dependency link, which helps you figure out what's
+going on with feature unification (<a href="features.html">Item 26</a>).</li>
+</ul>
+<h2 id="what-to-depend-on"><a class="header" href="#what-to-depend-on">What To Depend On</a></h2>
+<p>The previous sections have covered the more mechanical aspect of working with dependencies, but there's a more
+philosophical (and therefore harder to answer) question: when should you take on a dependency?</p>
+<p>Most of the time, there's not much of a decision involved: if you need the functionality of a crate, you need that
+function and the only alternative would be to write it yourself<sup><a name="to-footnote-1"><a href="#footnote-1">1</a></a></sup>.</p>
+<p>But every new dependency has a cost: partly in terms of longer builds and bigger binaries, but mostly in terms of the
+developer effort involved in fixing problems with dependencies when they arise.</p>
+<p>The bigger your dependendency graph, the more likely you are to be exposed to these kinds of problems.  The Rust crate
+ecosystem is just as vulnerable to accidental dependency problems as other package ecosystems, where history has shown
+that <a href="https://arstechnica.com/information-technology/2016/03/rage-quit-coder-unpublished-17-lines-of-javascript-and-broke-the-internet/">one developer yanking a
+package</a>,
+or a team <a href="https://www.theregister.com/2021/03/25/ruby_rails_code/">fixing the licensing for their package</a>, can have
+widespread knock-on effects.</p>
+<p>More worrying still are <a name="a021"></a>supply chain attacks, where a malicious actor deliberately tries to subvert commonly-used
+dependencies, whether by <a href="https://en.wikipedia.org/wiki/Typosquatting">typo-squatting</a> or by more sophisticated
+attacks<sup><a name="to-footnote-2"><a href="#footnote-2">2</a></a></sup>.</p>
+<p>This kind of attack doesn't just affect your compiled code ‐ be aware that a dependency can run arbitrary code at
+<em>build</em> time, via <a name="a023"></a><a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html"><code>build.rs</code></a> scripts.  That means
+that a compromised dependency could end up running a cryptocurrency miner as part of your continuous integration system!</p>
+<p>So for dependencies that are more &quot;cosmetic&quot;, it's sometimes worth considering whether adding the dependency is
+worth the cost.</p>
+<p>The answer is usually &quot;yes&quot;, though – in the end, the amount of time spent dealing with
+dependency problems ends up being much less than the time it would take to write equivalent functionality from
+scratch.</p>
+<p><hr/>
+<p><a name="footnote-1"><a href="#to-footnote-1">1</a></a>: If you are targetting a <code>no_std</code>
+environment, this choice may be made for you: many crates are not compatible with <code>no_std</code>, particularly if <code>alloc</code> is
+also unavailable (<a href="no-std.html">Item 33</a>).</p>
+<p><a name="footnote-2"><a href="#to-footnote-2">2</a></a>: <a name="a022"></a>Go's <a href="https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md">module transparency</a>
+takes a step towards addressing this, by ensuring that all clients see the same code for a given version of a
+package.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="re-export.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="features.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="re-export.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="features.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="src/third_party/ferris/ferris.js"></script>
+
+
+    </div>
+    </body>
+</html>

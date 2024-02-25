@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rust Indexed - search in Rust books and tutorials</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet">
     <link rel="icon" href="fav.png" type="image/x-icon">
     <style>
         img#header-img {width: 580px;}
@@ -19,6 +20,7 @@
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
+
 
 <div id="header" class="d-flex justify-content-center">
     <a href="/">
@@ -35,9 +37,7 @@
 </div>
 
 <div id="search-results-container" class="container">
-    <div id="alert" class="alert alert-danger d-none" role="alert">
-        Ups, something went wrong :/
-    </div>
+    <div id="alert" class="alert d-none" role="alert"></div>
     <div id="search-results"></div>
 </div>
 
@@ -66,10 +66,11 @@
     <ul class="nav justify-content-center border-top">
         <li class="nav-item"><a href="mailto:hello@rust-indexed.com" class="nav-link px-2 text-body-secondary">Hello</a></li>
         <li class="nav-item"><a href="https://github.com/panpilkarz/rust-indexed" class="nav-link px-2 text-body-secondary">Github</a></li>
+        <li class="nav-item"><a href="https://rust-indexed.com/rust-vs-python/" class="nav-link px-2 text-body-secondary">My Book</a></li>
     </ul>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
 
 <script>
     let page = 0;
@@ -79,12 +80,13 @@
     const resultsContainer = document.getElementById('search-results');
     const searchMore = document.getElementById('search-more');
     const searchInput = document.getElementById('search-input');
+    const alertContainer = document.getElementById('alert');
 
     function create_result_row(result) {
         let html = `
         <div class="row border-bottom search-res-row">
-            <h4><a href="${result.url}" class="text-primary search-res-title">${result.title}</a></h4>
-            <p><a href="${result.url}" class="text-muted search-res-url">${result.url}</a></p>
+            <h4><a href="${result.url}" class="text-primary search-res-title" target="_blank">${result.title}</a></h4>
+            <p><a href="${result.url}" class="text-muted search-res-url" target="_blank">${result.url}</a></p>
         `;
 
         if (result.snippet) {
@@ -95,7 +97,7 @@
 
         if (result.body) {
             html += `
-            <p><pre>${result.body}</pre></p>
+            <pre><code class="language-rust">${result.body}</code></pre>
             `;   
         }
 
@@ -108,7 +110,8 @@
     document.getElementById('search-form').addEventListener('submit', function (event) {
         event.preventDefault();
         query = searchInput.value;
-        window.location.hash = query;
+        window.location.hash = query.replace(/ /g, '+');
+        page = 0;
         render_search();
     });
 
@@ -122,7 +125,7 @@
         document.getElementById('search-results').innerHTML = "";
         document.getElementById('welcome').style.display = "none";
         document.getElementById('header-img').src = "head-small.png";
-        document.getElementById("alert").classList.add('d-none');
+        alertContainer.classList.add('d-none');
         searchMore.classList.add("d-none");
         searchInput.select();
         results = [];
@@ -130,6 +133,10 @@
     }
 
     function render_results() {
+        if (!results.length) {
+            return;
+        }
+
         let slice = results.slice(page * 10 , (page + 1) * 10);
 
         if (slice.length >= 10) {
@@ -142,10 +149,11 @@
         slice.forEach((result) => {
             resultsContainer.innerHTML += create_result_row(result);
         });
+
+        Prism.highlightAll();
     }
 
     function search() {
-
         if (results.length) {
             render_results();
             return;
@@ -160,22 +168,34 @@
         })
         .then(data => {
             results = data.results;
+            if (!results.length) {
+                let new_query = "rust+" + query.replace(/ /g, '+');
+                let brave = `https://search.brave.com/search?q=${new_query}`;
+                alertContainer.classList.add('alert-info');
+                alertContainer.innerHTML = `No results :(<br/><a href="${brave}" target="_blank">Search in Brave Search &raquo;</a>`;
+                alertContainer.classList.remove('d-none');
+            }
             render_results();
         })
         .catch(error => {
-            document.getElementById("alert").classList.remove('d-none');
+            alertContainer.classList.add('alert-danger');
+            alertContainer.innerHTML = `Ups, something went wrong :/<br/>${error}`;
+            alertContainer.classList.remove('d-none');
             console.error('Error:', error);
         });
     }
 
     if (window.location.hash.length > 1) {
-        query = window.location.hash.slice(1);
+        query = window.location.hash.slice(1).replace(/\+/g, ' ');
         searchInput.value = decodeURIComponent(query);
         render_search();
     }
 
     // search("async");
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-rust.min.js"></script>
 
 </body>
 </html>

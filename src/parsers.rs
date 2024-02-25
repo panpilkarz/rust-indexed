@@ -1,5 +1,38 @@
 use std::path::PathBuf;
 
+use lazy_static::lazy_static;
+use regex::Regex;
+
+fn strip_tags(html: &str) -> String {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"<[^>]*>").unwrap();
+    }
+    RE.replace_all(html, "").to_string()
+}
+
+fn strip_refs(text: &str) -> String {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"\[[^\]]*\]").unwrap();
+    }
+    RE.replace_all(text, "").to_string()
+}
+
+fn strip_ticks(text: &str) -> String {
+    text.chars().filter(|&ch| ch != '`').collect()
+}
+
+fn parse_html_title(html: &str) -> Option<String> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"<title>(.*?)</title>").unwrap();
+    }
+    if let Some(captures) = RE.captures(html) {
+        if let Some(title) = captures.get(1) {
+            return Some(title.as_str().to_string());
+        }
+    }
+    None
+}
+
 fn seek_link_description(s: &str) -> &str {
     if let Some(index) = s.find('[') {
         return &s[index + 1..];
@@ -24,7 +57,7 @@ fn parse_include(s: &str, md_dir: &str) -> Option<String> {
             if let Ok(buf) = std::fs::read_to_string(&path) {
                 let code: Vec<_> = buf
                     .lines()
-                    .filter(|&line| !line.starts_with("// "))
+                    .filter(|&line| !(line.starts_with("// ") || line.eq("//")))
                     .collect();
                 return Some(code.join("\n"));
             }
@@ -57,6 +90,23 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
     let mut code = String::new();
     let mut in_code = false;
 
+    // Handle includes
+    for line in s.split('\n') {
+        if let Some(line_stripped) = line.strip_prefix("{{") {
+            if let Some(buf) = parse_include(line_stripped, md_dir) {
+                new_s.push_str(&buf);
+                new_s.push('\n');
+            }
+            continue;
+        }
+
+        new_s.push_str(line);
+        new_s.push('\n');
+    }
+
+    let s = new_s;
+    let mut new_s = String::new();
+
     for line in s.split('\n') {
         // Code block start/end
         if line.starts_with("```") {
@@ -74,35 +124,40 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
             continue;
         }
 
-        // Skip underlines
-        if !in_code && (line.starts_with("---") || line.starts_with("___")) {
-            continue;
-        }
-
-        // Handle includes
-        if let Some(line_stripped) = line.strip_prefix("{{") {
-            if let Some(buf) = parse_include(line_stripped, md_dir) {
-                new_s.push_str(&buf);
-                if in_code {
-                    code.push_str(&buf);
-                    code.push('\n');
-                }
-            }
-            continue;
-        }
-
+        // Trim the end but not the beginning to keep indentation
         let line = line.trim_end();
 
         if in_code {
             code.push_str(line);
             code.push('\n');
+            continue;
         }
+
+        // Skip underlines
+        if line.starts_with("---") || line.starts_with("___") || line.starts_with('[') {
+            continue;
+        }
+
+        // Trim leading special markup chars
+        let line = line.trim_start_matches('#').trim_start();
+        let line = line.trim_start_matches('*').trim_start();
+
+        // Strip "decorators"
+        let line = &strip_tags(line);
+        let line = &strip_refs(line);
+        let line = &strip_ticks(line);
 
         new_s.push_str(line);
         new_s.push('\n');
     }
 
     (new_s.trim().to_string(), code_blocks)
+}
+
+pub fn parse_html_page(html: &str) -> (String, Vec<String>, Option<String>) {
+    let title = parse_html_title(html);
+
+    (strip_tags(html), vec![], title)
 }
 
 #[cfg(test)]
@@ -156,13 +211,9 @@ loop {
 
         assert_eq!(
             body,
-            "# Example code 1
-let x = 1;
+            "Example code 1
 
-# Example code 2
-loop {
-    let a = String::new();
-}"
+Example code 2"
         );
 
         assert_eq!(code_blocks[0], "let x = 1;");
@@ -188,7 +239,7 @@ loop {
 {{#include src/main.rs}}
 ```
 ```rust ok
-{{#include  src/parsers.rs  }}
+{{#include src/lib.rs  }}
 ```
 ```rust ok
 {{#rustdoc_include src/index.rs}}
@@ -219,5 +270,26 @@ ___
         );
 
         assert_eq!(body, "NOTES");
+    }
+
+    #[test]
+    fn test_ignore_header_hashes() {
+        let (body, _) = parse_md_page(
+            "
+# Head
+content
+## Head2
+content2
+            ",
+            "",
+        );
+
+        assert_eq!(
+            body,
+            "Head
+content
+Head2
+content2"
+        );
     }
 }
