@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use html_escape::decode_html_entities;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -155,9 +156,13 @@ pub fn parse_md_page(s: &str, md_dir: &str) -> (String, Vec<String>) {
 }
 
 pub fn parse_html_page(html: &str) -> (String, Vec<String>, Option<String>) {
+    // todo: parse code blocks
     let title = parse_html_title(html);
 
-    (strip_tags(html), vec![], title)
+    let text = strip_tags(html);
+    let text = decode_html_entities(&text).to_string();
+
+    (text, vec![], title)
 }
 
 #[cfg(test)]
