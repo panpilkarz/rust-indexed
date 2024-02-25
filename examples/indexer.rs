@@ -11,7 +11,9 @@ struct IndexedSource {
     title: String,
     base_url: String,
     directory: String,
+    is_mdbook: Option<bool>,
     is_html: Option<bool>,
+    is_md: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -32,7 +34,7 @@ fn main() -> tantivy::Result<()> {
     // For each mdbook
     for source in config.sources {
         if source.is_html == Some(true) {
-            println!("Indexing {:?}", source.directory);
+            println!("Indexing html files from {:?}", source.directory);
 
             if let Ok(files) = fs::read_dir(&source.directory) {
                 for file in files {
@@ -51,7 +53,42 @@ fn main() -> tantivy::Result<()> {
                     total_pages += 1;
                 }
             }
-        } else {
+            continue;
+        }
+
+        if source.is_md == Some(true) {
+            println!("Indexing md files from {:?}", source.directory);
+
+            if let Ok(files) = fs::read_dir(&source.directory) {
+                for file in files {
+                    let file_name = file?.file_name();
+                    let path = PathBuf::from(&source.directory).join(&file_name);
+                    println!("Indexing {:?}", &path);
+
+                    let buf = std::fs::read_to_string(&path)?;
+                    let (content, code_blocks) =
+                        parse_md_page(buf.as_str(), path.to_str().unwrap());
+
+                    let file_name_no_md = file_name.to_str().unwrap().replace(".md", "");
+                    let url = format!("{}/{}", source.base_url, file_name_no_md);
+                    let title = format!("{} - {}", file_name_no_md, source.title);
+                    index_page.add_document(url.clone(), title.clone(), content)?;
+
+                    // Index code blocks found in the chapter
+                    for code_block in code_blocks {
+                        index_code
+                            .add_document(url.clone(), title.clone(), code_block)
+                            .unwrap();
+                        total_code_blocks += 1;
+                    }
+                    total_pages += 1;
+                }
+            }
+
+            continue;
+        }
+
+        if source.is_mdbook == Some(true) {
             let path = PathBuf::from(&source.directory).join("SUMMARY.md");
             println!("Indexing {:?}", path);
             let buf = std::fs::read_to_string(&path)?;
@@ -90,12 +127,14 @@ fn main() -> tantivy::Result<()> {
                     eprintln!("Couldn't parse {:?}", path);
                 }
             }
+            continue;
         }
-        println!(
-            "Indexed {} pages and {} code blocks",
-            total_pages, total_code_blocks
-        );
     }
+
+    println!(
+        "Indexed {} pages and {} code blocks",
+        total_pages, total_code_blocks
+    );
 
     index_page.commit()?;
     index_code.commit()?;

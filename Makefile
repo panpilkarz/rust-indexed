@@ -33,11 +33,12 @@ update-mdbooks:
 	git -C mdbooks/comprehensive-rust pull
 	git -C mdbooks/book pull
 	git -C mdbooks/nomicon pull
-	git -C mdbooks/website pull
 	git -C mdbooks/rust-by-example pull
 	git -C mdbooks/rust-cookbook pull
 	git -C mdbooks/rust-vs-python pull
 	git -C mdbooks/yet-another-rust-resource pull
+	git -C mdbooks/website pull
+	rm -rf mdbooks/website/content/tokio/tutorial/index.md
 
 reset:
 	rm -rf indexes/*
