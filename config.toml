@@ -2,39 +2,52 @@
 title = "Rust Book 2nd edition"
 base_url = "https://doc.rust-lang.org/book"
 directory = "mdbooks/book/src/"
+is_mdbook = true
 
 [[sources]]
 title = "Comprehensive Rust"
 base_url = "https://google.github.io/comprehensive-rust"
 directory = "mdbooks/comprehensive-rust/src/"
+is_mdbook = true
 
 [[sources]]
 title = "Rust By Example"
 base_url = "https://doc.rust-lang.org/rust-by-example"
 directory = "mdbooks/rust-by-example/src"
+is_mdbook = true
 
 [[sources]]
 title = "Rust vs Python"
 base_url = "https://rust-indexed.com/rust-vs-python"
 directory = "mdbooks/rust-vs-python/src"
+is_mdbook = true
 
 [[sources]]
 title = "The Rustonomicon"
 base_url = "https://doc.rust-lang.org/nomicon"
 directory = "mdbooks/nomicon/src"
+is_mdbook = true
 
 [[sources]]
 title = "Cookin' with Rust"
 base_url = "https://rust-lang-nursery.github.io/rust-cookbook"
 directory = "mdbooks/rust-cookbook/src"
+is_mdbook = true
 
 [[sources]]
 title = "Yet Another Rust Resource (YARR!)"
 base_url = "https://yet-another-rust-resource.pages.dev"
 directory = "mdbooks/yet-another-rust-resource/src"
+is_mdbook = true
 
 [[sources]]
-title = "Effectie Rust"
+title = "Effective Rust"
 base_url = "https://www.lurklurk.org/effective-rust"
 directory = "mdbooks/lurk-effective-rust/"
 is_html = true
+
+[[sources]]
+title = "Tokio Tutorial"
+base_url = "https://tokio.rs/tokio/tutorial"
+directory = "mdbooks/website/content/tokio/tutorial/"
+is_md = true

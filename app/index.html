@@ -178,8 +178,8 @@
             render_results();
         })
         .catch(error => {
+            alertContainer.innerHTML = 'Ups, something went wrong :/';
             alertContainer.classList.add('alert-danger');
-            alertContainer.innerHTML = `Ups, something went wrong :/<br/>${error}`;
             alertContainer.classList.remove('d-none');
             console.error('Error:', error);
         });
