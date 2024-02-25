@@ -1,0 +1,570 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Item 2: Use the type system to express common behaviour - Effective Rust</title>
+
+
+        <!-- Custom HTML head -->
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-23228806-1']);
+          _gaq.push(['_trackPageview']);
+        
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+        <meta name="description" content="A collection of specific ways to improve your use of Rust">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="src/third_party/ferris/ferris.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="cover.html"><strong aria-hidden="true">1.</strong> Cover</a></li><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">2.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">3.</strong> Types</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="use-types.html"><strong aria-hidden="true">3.1.</strong> Item 1: Use the type system to express your data structures</a></li><li class="chapter-item expanded "><a href="use-types-2.html" class="active"><strong aria-hidden="true">3.2.</strong> Item 2: Use the type system to express common behaviour</a></li><li class="chapter-item expanded "><a href="transform.html"><strong aria-hidden="true">3.3.</strong> Item 3: Avoid matching Option and Result</a></li><li class="chapter-item expanded "><a href="errors.html"><strong aria-hidden="true">3.4.</strong> Item 4: Prefer idiomatic Error variants</a></li><li class="chapter-item expanded "><a href="std-traits.html"><strong aria-hidden="true">3.5.</strong> Item 5: Familiarize yourself with standard traits</a></li><li class="chapter-item expanded "><a href="casts.html"><strong aria-hidden="true">3.6.</strong> Item 6: Understand type conversions</a></li><li class="chapter-item expanded "><a href="newtype.html"><strong aria-hidden="true">3.7.</strong> Item 7: Embrace the newtype pattern</a></li><li class="chapter-item expanded "><a href="builders.html"><strong aria-hidden="true">3.8.</strong> Item 8: Use builders for complex types</a></li><li class="chapter-item expanded "><a href="references.html"><strong aria-hidden="true">3.9.</strong> Item 9: Familiarize yourself with reference and pointer types</a></li><li class="chapter-item expanded "><a href="iterators.html"><strong aria-hidden="true">3.10.</strong> Item 10: Consider using iterator transforms instead of explicit loops</a></li><li class="chapter-item expanded "><a href="raii.html"><strong aria-hidden="true">3.11.</strong> Item 11: Implement the Drop trait for RAII patterns</a></li><li class="chapter-item expanded "><a href="generics.html"><strong aria-hidden="true">3.12.</strong> Item 12: Prefer generics to trait objects</a></li><li class="chapter-item expanded "><a href="default-impl.html"><strong aria-hidden="true">3.13.</strong> Item 13: Use default implementations to minimize required trait methods</a></li></ol></li><li class="chapter-item expanded "><a href="concepts.html"><strong aria-hidden="true">4.</strong> Concepts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="lifetimes.html"><strong aria-hidden="true">4.1.</strong> Item 14: Understand lifetimes</a></li><li class="chapter-item expanded "><a href="borrows.html"><strong aria-hidden="true">4.2.</strong> Item 15: Understand the borrow checker</a></li><li class="chapter-item expanded "><a href="unsafe.html"><strong aria-hidden="true">4.3.</strong> Item 16: Avoid writing unsafe code</a></li><li class="chapter-item expanded "><a href="deadlock.html"><strong aria-hidden="true">4.4.</strong> Item 17: Be wary of shared-state parallelism</a></li><li class="chapter-item expanded "><a href="panic.html"><strong aria-hidden="true">4.5.</strong> Item 18: Don't panic</a></li><li class="chapter-item expanded "><a href="reflection.html"><strong aria-hidden="true">4.6.</strong> Item 19: Avoid reflection</a></li><li class="chapter-item expanded "><a href="optimize.html"><strong aria-hidden="true">4.7.</strong> Item 20: Avoid the temptation to over-optimize</a></li></ol></li><li class="chapter-item expanded "><a href="deps.html"><strong aria-hidden="true">5.</strong> Dependencies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.1.</strong> Item 21: Understand what semantic versioning promises</a></li><li class="chapter-item expanded "><a href="visibility.html"><strong aria-hidden="true">5.2.</strong> Item 22: Minimize visibility</a></li><li class="chapter-item expanded "><a href="wildcard.html"><strong aria-hidden="true">5.3.</strong> Item 23: Avoid wildcard imports</a></li><li class="chapter-item expanded "><a href="re-export.html"><strong aria-hidden="true">5.4.</strong> Item 24: Re-export dependencies whose types appear in your API</a></li><li class="chapter-item expanded "><a href="dep-graph.html"><strong aria-hidden="true">5.5.</strong> Item 25: Manage your dependency graph</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">5.6.</strong> Item 26: Be wary of feature creep</a></li></ol></li><li class="chapter-item expanded "><a href="tooling.html"><strong aria-hidden="true">6.</strong> Tooling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="documentation.html"><strong aria-hidden="true">6.1.</strong> Item 27: Document public interfaces</a></li><li class="chapter-item expanded "><a href="macros.html"><strong aria-hidden="true">6.2.</strong> Item 28: Use macros judiciously</a></li><li class="chapter-item expanded "><a href="clippy.html"><strong aria-hidden="true">6.3.</strong> Item 29: Listen to Clippy</a></li><li class="chapter-item expanded "><a href="testing.html"><strong aria-hidden="true">6.4.</strong> Item 30: Write more than unit tests</a></li><li class="chapter-item expanded "><a href="use-tools.html"><strong aria-hidden="true">6.5.</strong> Item 31: Take advantage of the tooling ecosystem</a></li><li class="chapter-item expanded "><a href="ci.html"><strong aria-hidden="true">6.6.</strong> Item 32: Set up a continuous integration (CI) system</a></li></ol></li><li class="chapter-item expanded "><a href="beyond-std.html"><strong aria-hidden="true">7.</strong> Beyond Standard Rust</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="no-std.html"><strong aria-hidden="true">7.1.</strong> Item 33: Consider making library code no_std compatible</a></li><li class="chapter-item expanded "><a href="ffi.html"><strong aria-hidden="true">7.2.</strong> Item 34: Control what crosses FFI boundaries</a></li><li class="chapter-item expanded "><a href="bindgen.html"><strong aria-hidden="true">7.3.</strong> Item 35: Prefer bindgen to manual FFI mappings</a></li></ol></li><li class="chapter-item expanded "><a href="indexing.html"><strong aria-hidden="true">8.</strong> Index</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Effective Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="item-2-use-the-type-system-to-express-common-behaviour"><a class="header" href="#item-2-use-the-type-system-to-express-common-behaviour">Item 2: Use the type system to express common behaviour</a></h1>
+<p><a href="use-types.html">Item 1</a> discussed how to express data structures in the type system; this Item moves on to discuss the encoding of
+<em>behaviour</em> in Rust's type system.</p>
+<h2 id="methods"><a class="header" href="#methods">Methods</a></h2>
+<p>The first place where behaviour is visible in Rust's type system is the addition of <em><a name="a001"></a>methods</em> to data structures:
+functions that act on an item of that type, identified by <code>self</code>.  This encapsulates related data and code together
+in a <a name="a002"></a>object-oriented way that's similar to other languages; however, in Rust methods can be added to
+to <a name="a003"></a><code>enum</code> types as well as to <a name="a004"></a><code>struct</code> types, in keeping with the pervasive nature of Rust's <code>enum</code> (<a href="use-types.html">Item 1</a>).</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Shape {
+    Rectangle { width: f64, height: f64 },
+    Circle { radius: f64 },
+}
+
+impl Shape {
+    pub fn area(&amp;self) -&gt; f64 {
+        match self {
+            Shape::Rectangle { width, height } =&gt; width * height,
+            Shape::Circle { radius } =&gt; std::f64::consts::PI * radius * radius,
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The name of a method gives a label for the behaviour that it encodes, and the <a name="a005"></a>method signature gives type
+information for its inputs and outputs.  The first input for a method will be some variant of <code>self</code>, indicating
+what the method might do to the data structure:</p>
+<ul>
+<li>A <code>&amp;self</code> parameter indicates that the contents of the data structure may be read from, but will not be modified.</li>
+<li>A <code>&amp;mut self</code> parameter indicates that the method might modify the contents of the data structure.</li>
+<li>A <code>self</code> parameter indicates that the method consumes the data structure.</li>
+</ul>
+<h2 id="abstracting-behaviour"><a class="header" href="#abstracting-behaviour">Abstracting Behaviour</a></h2>
+<p>Invoking a method always results in the same code being executed; all that changes from invocation to invocation is the
+data that the method operates on.  That covers a lot of possible scenarios, but what if the <em>code</em> needs to vary at
+runtime?</p>
+<p>Rust includes several features in its type system to accomodate this, which this section explores.</p>
+<h3 id="function-pointers"><a class="header" href="#function-pointers">Function Pointers</a></h3>
+<p>The simplest behavioural abstraction is the <a name="a006"></a><a href="https://doc.rust-lang.org/std/primitive.fn.html"><em>function
+pointer</em></a>: a pointer to (just) some code, with a type that reflects the
+signature of the function.  The type is checked at compile time, so by the time the program runs the value is just the
+size of a pointer.</p>
+<pre><code class="language-rust ignore">    fn sum(x: i32, y: i32) -&gt; i32 {
+        x + y
+    }
+    // Explicit coercion to `fn` type is required...
+    let op: fn(i32, i32) -&gt; i32 = sum;</code></pre>
+<p>Function pointers have no other data associated with them, so they can be treated as values in various ways:</p>
+<pre><code class="language-rust ignore">    // `fn` types implement `Copy`
+    let op1 = op;
+    let op2 = op;
+    // `fn` types implement `Eq`
+    assert!(op1 == op2);
+    // `fn` implements `std::fmt::Pointer`, used by the {:p} format specifier.
+    println!(&quot;op = {:p}&quot;, op);
+    // Example output: &quot;op = 0x101e9aeb0&quot;</code></pre>
+<aside>
+<p>One technical detail to watch out for: explicit coercion to a <code>fn</code> type is needed, because just using the name of a
+function <em>doesn't</em> give you something of <code>fn</code> type;</p>
+<pre><code class="language-rust ignore does_not_compile">        let op1 = sum;
+        let op2 = sum;
+        // Both op1 and op2 are of a type that cannot be named in user code,
+        // and this internal type does not implement `Eq`.
+        assert!(op1 == op2);</code></pre>
+<pre><code class="language-text">error[E0369]: binary operation `==` cannot be applied to type `fn(i32, i32) -&gt; i32 {main::sum}`
+   --&gt; use-types-behaviour/src/main.rs:117:21
+    |
+117 |         assert!(op1 == op2);
+    |                 --- ^^ --- fn(i32, i32) -&gt; i32 {main::sum}
+    |                 |
+    |                 fn(i32, i32) -&gt; i32 {main::sum}
+    |
+help: you might have forgotten to call this function
+    |
+117 |         assert!(op1( /* arguments */ ) == op2);
+    |                    +++++++++++++++++++
+help: you might have forgotten to call this function
+    |
+117 |         assert!(op1 == op2( /* arguments */ ));
+    |                           +++++++++++++++++++
+</code></pre>
+<p>Instead, the compiler error indicates that the type is something like <code>fn(i32, i32) -&gt; i32 {main::sum}</code>, a type that's
+entirely internal to the compiler (i.e. could not be written in user code), and which identifies the specific function as
+well as its signature.  To put it another way, the <em>type</em> of <code>sum</code> encodes both the function's signature <em>and</em> its
+location (<a href="https://doc.rust-lang.org/std/primitive.fn.html#creating-function-pointers">for optimization reasons</a>); this
+type can be automatically <a name="a007"></a><em>coerced</em> (<a href="casts.html">Item 6</a>) to a <code>fn</code> type.</p>
+</aside>
+<h3 id="closures"><a class="header" href="#closures">Closures</a></h3>
+<p>Bare function pointers are limiting, because the only inputs available to the invoked function are those that are
+explicitly passed as parameter values.</p>
+<p>For example, consider some code that modified every element of a slice using a function pointer.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    // In real code, an `Iterator` method would be more appropriate.
+    pub fn modify_all(data: &amp;mut [u32], mutator: fn(u32) -&gt; u32) {
+        for value in data {
+            *value = mutator(*value);
+        }
+    }
+<span class="boring">}</span></code></pre></pre>
+<p>This works for a simple mutation of the slice:</p>
+<pre><code class="language-rust ignore">        fn add2(v: u32) -&gt; u32 {
+            v + 2
+        }
+        let mut data = vec![1, 2, 3];
+        modify_all(&amp;mut data, add2);
+        assert_eq!(data, vec![3, 4, 5,]);</code></pre>
+<p>However, if the modification relies on any additional state, it's not possible to implicitly pass that into the function
+pointer.</p>
+<pre><code class="language-rust ignore does_not_compile">        let amount_to_add = 3;
+        fn add_n(v: u32) -&gt; u32 {
+            v + amount_to_add
+        }
+        let mut data = vec![1, 2, 3];
+        modify_all(&amp;mut data, add_n);
+        assert_eq!(data, vec![3, 4, 5,]);</code></pre>
+<pre><code>error[E0434]: can't capture dynamic environment in a fn item
+   --&gt; use-types-behaviour/src/main.rs:142:17
+    |
+142 |             v + amount_to_add
+    |                 ^^^^^^^^^^^^^
+    |
+    = help: use the `|| { ... }` closure form instead
+</code></pre>
+<p>The error message points to the right tool for the job: a <em><a name="a008"></a>closure</em>. A closure is a chunk of code that looks like
+the body of a function definition (a <em><a name="a009"></a>lambda expression</em>), except that:</p>
+<ul>
+<li>it can be built as part of an expression, and so need not have a name associated with it</li>
+<li>the input parameters are given in vertical bars <code>|param1, param2|</code> (their associated types can usually be
+automatically deduced by the compiler)</li>
+<li>it can capture parts of the environment around it.</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    let amount_to_add = 3;
+    let add_n = |y| {
+        // a closure capturing `amount_to_add`
+        y + amount_to_add
+    };
+    let z = add_n(5);
+    assert_eq!(z, 8);
+<span class="boring">}</span></code></pre></pre>
+<p>To (roughly) understand how the capture works, imagine that the compiler creates a one-off, internal type that
+holds all of the parts of the environment that get mentioned in the lambda expression.  When the closure is created, an
+instance of this ephemeral type is created to hold the relevant values, and when the closure is invoked that
+instance is used as additional context.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    let amount_to_add = 3;
+    // *Rough* equivalent to a capturing closure.
+    struct InternalContext&lt;'a&gt; {
+        // references to captured variables
+        amount_to_add: &amp;'a u32,
+    }
+    impl&lt;'a&gt; InternalContext&lt;'a&gt; {
+        fn internal_op(&amp;self, y: u32) -&gt; u32 {
+            // body of the lambda expression
+            y + *self.amount_to_add
+        }
+    }
+    let add_n = InternalContext {
+        amount_to_add: &amp;amount_to_add,
+    };
+    let z = add_n.internal_op(5);
+    assert_eq!(z, 8);
+<span class="boring">}</span></code></pre></pre>
+<p>The values that are held in this notional context are often references (<a href="references.html">Item 9</a>) as here, but they can also be mutable
+references to things in the environment, or values that are moved out of the environment altogether (by using the <code>move</code>
+keyword before the input parameters).</p>
+<p>Returning to the <code>modify_all</code> example, a closure can't be used where a function pointer is expected.</p>
+<pre><code>error[E0308]: mismatched types
+   --&gt; use-types-behaviour/src/main.rs:165:31
+    |
+165 |         modify_all(&amp;mut data, |y| y + amount_to_add);
+    |                               ^^^^^^^^^^^^^^^^^^^^^ expected fn pointer, found closure
+    |
+    = note: expected fn pointer `fn(u32) -&gt; u32`
+                  found closure `[closure@use-types-behaviour/src/main.rs:165:31: 165:52]`
+note: closures can only be coerced to `fn` types if they do not capture any variables
+   --&gt; use-types-behaviour/src/main.rs:165:39
+    |
+165 |         modify_all(&amp;mut data, |y| y + amount_to_add);
+    |                                       ^^^^^^^^^^^^^ `amount_to_add` captured here
+</code></pre>
+<p>Instead, the code that receives the closure has to accept an instance of one of the <code>Fn*</code> traits.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    pub fn modify_all&lt;F&gt;(data: &amp;mut [u32], mut mutator: F)
+    where
+        F: FnMut(u32) -&gt; u32,
+    {
+        for value in data {
+            *value = mutator(*value);
+        }
+    }
+<span class="boring">}</span></code></pre></pre>
+<p>Rust has three different <code>Fn*</code> traits, which between them express some distinctions around this environment
+capturing behaviour.</p>
+<ul>
+<li><a name="a010"></a><a href="https://doc.rust-lang.org/std/ops/trait.FnOnce.html"><code>FnOnce</code></a> describes a closure that can only be called
+<em>once</em>.  If some part of its environment is <code>move</code>d into the closure, then that <code>move</code> can only happen once –
+there's no other copy of the source item to <code>move</code> from – and so the closure can only be invoked once.</li>
+<li><a name="a011"></a><a href="https://doc.rust-lang.org/std/ops/trait.FnMut.html"><code>FnMut</code></a> describes a closure that can be called repeatedly,
+and which can make changes to its environment because it <em>mutably</em> borrows from the environment.</li>
+<li><a name="a012"></a><a href="https://doc.rust-lang.org/std/ops/trait.Fn.html"><code>Fn</code></a> describes a closure that can be called repeatedly, and
+which only borrows values from the environment immutably.</li>
+</ul>
+<p>The compiler <em>automatically</em> implements the appropriate subset of these <code>Fn*</code> traits for any lambda
+expression in the code; it's not possible to manually implement any of these traits<sup><a name="to-footnote-1"><a href="#footnote-1">1</a></a></sup> (unlike <a name="a013"></a>C++'s <code>operator()</code> overload).</p>
+<p>Returning to the rough mental model of closures above, which of the traits the compiler auto-implements roughly
+corresponds to whether the captured environmental context has:</p>
+<ul>
+<li><code>FnOnce</code>: any moved values</li>
+<li><code>FnMut</code>: any mutable references to values (<code>&amp;mut T</code>)</li>
+<li><code>Fn</code>: only normal references to values (<code>&amp;T</code>).</li>
+</ul>
+<p>The latter two traits in the list above each has a <a name="a014"></a>trait bound of the preceding trait, which makes sense when you consider
+the things that <em>use</em> the closures.</p>
+<ul>
+<li>If something only expects to call a closure once (indicated by receiving a <code>FnOnce</code>), it's OK to pass it a closure
+that's capable of being repeatedly called (<code>FnMut</code>).</li>
+<li>If something expects to repeatedly call a closure that might mutate its environment (indicated by receiving a
+<code>FnMut</code>), it's OK to pass it a closure that <em>doesn't</em> need to mutate its environment (<code>Fn</code>).</li>
+</ul>
+<p>The bare function pointer type <code>fn</code> also notionally belongs at the end of this list; any (not-<code>unsafe</code>) <code>fn</code> type
+automatically implements all of the <code>Fn*</code> traits, because it borrows nothing from the environment.</p>
+<p>As a result, when writing code that accepts closures, <strong>use the most general <code>Fn*</code> trait that works</strong>, to allow the
+greatest flexibility for callers – for example, accept <code>FnOnce</code> for closures that are only used once. The same
+reasoning also leads to advice to <strong>prefer <code>Fn*</code> trait bounds to bare function pointers (<code>fn</code>)</strong>.</p>
+<h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
+<p>The <code>Fn*</code> traits are more flexible than a bare function pointer, but they can still only describe the behaviour of a
+single function, and even then only in terms of the function's signature.</p>
+<p>However, they are themselves examples of another mechanism for describing behaviour in Rust's type system, the
+<em><a name="a015"></a>trait</em>. A trait defines a set of related methods that some underlying item
+makes publicly available. Each method in a trait also has a <em>name</em>, providing a label which allows the compiler to
+disambiguate methods with the same signature, and more importantly which allows programmers to deduce the intent of the
+method.</p>
+<p>A Rust trait is roughly analogous to an &quot;interface&quot; in <a name="a016"></a>Go and <a name="a017"></a>Java, or to an &quot;<a name="a018"></a>abstract class&quot;
+(all virtual methods, no data members) in C++.  Implementations of the trait must provide all the methods (but note that
+the trait definition can include a default implementation, <a href="default-impl.html">Item 13</a>), and can also have associated data that those
+implementations make use of.  This means that code and data gets encapsulated together in a common abstraction, in a
+<em>somewhat</em> <a name="a019"></a>object-oriented manner.</p>
+<p>Code that accepts a <code>struct</code> and calls methods on it is constrained to only ever work with that specific type.  If there
+are multiple types that implement common behaviour, then it is more flexible to define a trait that encapsulates that
+common behaviour, and have the code make use of the trait's methods rather than methods on a specific <code>struct</code>.</p>
+<p>This leads to the same kind of advice that turns up for other OO-influenced languages<sup><a name="to-footnote-2"><a href="#footnote-2">2</a></a></sup>: <strong>prefer accepting trait types to concrete types</strong> if future flexibility is anticipated.</p>
+<p>Sometimes, there is some behaviour that you want to distinguish in the type system, but which cannot be expressed as
+some specific method signature in a trait definition. For example, consider a trait for sorting collections; an
+implementation might be <em>stable</em> (elements that compare the same will appear in the same order before and after the
+sort) but there's no way to express this in the <code>sort</code> method arguments.</p>
+<p>In this case, it's still worth using the type system to track this requirement, using a <em>marker trait</em>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub trait Sort {
+    /// Re-arrange contents into sorted order.
+    fn sort(&amp;mut self);
+}
+
+/// Marker trait to indicate that a [`Sortable`] sorts stably.
+pub trait StableSort: Sort {}
+<span class="boring">}</span></code></pre></pre>
+<p>A <a name="a021"></a>marker trait has no methods, but an implementation still has to declare that it is implementing the trait –
+which acts as a promise from the implementer: &quot;I solemnly swear that my implementation sorts stably&quot;.  Code that relies
+on a stable sort can then specify the <code>StableSort</code> trait bound, relying on the honour system to preserve its
+invariants. <strong>Use marker traits to distinguish behaviours that cannot be expressed in the trait method signatures</strong>.</p>
+<p>Once behaviour has been encapsulated into Rust's type system as a trait, there are two ways it can be used:</p>
+<ul>
+<li>as a <em>trait bound</em>, which constrains what types are acceptable for a <a name="a022"></a>generic data type or method at
+compile-time, or</li>
+<li>as a <em><a name="a023"></a>trait object</em>. which constrains what types can be stored or passed to a method at run-time.</li>
+</ul>
+<p><a href="generics.html">Item 12</a> discusses the trade-offs between these in more detail.</p>
+<p>A <em><a name="a024"></a>trait bound</em> indicates that generic code which is parameterized by some type <code>T</code> can only be used when that type <code>T</code>
+implements some specific trait. The presence of the <a name="a025"></a>trait bound means that the implementation of the generic can
+use the methods from that trait, secure in the knowledge that the compiler will ensure that any <code>T</code> that compiles does
+indeed have those methods.  This check happens at compile-time, when the generic is
+<a name="a026"></a><em>monomorphized</em> (Rust's term for what C++ would call <a name="a027"></a>&quot;template instantiation&quot;).</p>
+<p>This restriction on the target type <code>T</code> is <em>explicit</em>, encoded in the trait bounds: the trait can only be implemented by
+types that satisfy the trait bounds. This is in contrast to the equivalent situation in C++, where the constraints on
+the type <code>T</code> used in a <code>template&lt;typename T&gt;</code> are <em>implicit</em> <sup><a name="to-footnote-3"><a href="#footnote-3">3</a></a></sup>: C++ template code still only compiles if all of the referenced methods are available at compile-time, but
+the checks are purely based on method and signature.  (This <a name="a029"></a><a href="https://en.wikipedia.org/wiki/Duck_typing">&quot;duck
+typing&quot;</a> leads to the chance of confusion; a C++ template that uses <code>t.pop()</code>
+might compile for a <code>T</code> type parameter of either <code>Stack</code> or <code>Balloon</code> – which is unlikely to be desired
+behaviour.)</p>
+<p>The need for explicit trait bounds also means that a large fraction of <a name="a030"></a>generics use trait bounds.  To see why this is,
+turn the observation around and consider what can be done with a <code>struct Thing&lt;T&gt;</code> where there <em>no</em> trait bounds on
+<code>T</code>. Without a trait bound, the <code>Thing</code> can only perform operations that apply to <em>any</em> type <code>T</code>; this allows for
+containers, collections and smart pointers, but not much else.  Anything that <em>uses</em> the type <code>T</code> is going to need
+a trait bound.</p>
+<pre><code class="language-rust ignore">pub fn dump_sorted&lt;T&gt;(mut collection: T)
+where
+    T: Sort + IntoIterator,
+    T::Item: Debug,
+{
+    // Next line requires `T: Sort` trait bound.
+    collection.sort();
+    // Next line requires `T: IntoIterator` trait bound.
+    for item in collection {
+        // Next line requires `T::Item : Debug` trait bound
+        println!(&quot;{:?}&quot;, item);
+    }
+}</code></pre>
+<p>So the advice here is to <strong>use trait bounds to express requirements on the types used in generics</strong>, but it's easy
+advice to follow – the compiler will force you to comply with it regardless.</p>
+<p>A <em><a name="a031"></a>trait object</em> is the other way of making use of the encapsulation defined by a trait, but here different possible
+implementations of the trait are chosen at run-time rather than compile-time.  This <em>dynamic dispatch</em> is analogous to
+the use of virtual functions in C++, and under the covers Rust has '<a name="a032"></a>vtable' objects that are <em>roughly</em> analogous to those
+in C++.</p>
+<p>This dynamic aspect of trait objects also means that they always have to be handled indirectly, via a <a name="a033"></a>reference (<code>&amp;dyn Trait</code>) or a pointer (<code>Box&lt;dyn Trait&gt;</code>).  This is because the size of the object implementing the trait isn't known at
+compile time – it could be a giant <code>struct</code> or a tiny <code>enum</code> – so there's no way to allocate the right
+amount of space for a bare trait object.</p>
+<p>A similar concern means that traits used as trait objects cannot have methods that return the <a name="a034"></a><code>Self</code> type, because the
+compiled-in-advance code that uses the trait object would have no idea how big that <code>Self</code> might be.</p>
+<p>A trait that has a <a name="a035"></a>generic method <code>fn method&lt;T&gt;(t:T)</code> allows for the possibility of an infinite number of implemented
+methods, for all the different types <code>T</code> that might exist.  This is fine for a trait used as a trait bound, because the
+infinite set of <em>possibly</em> invoked generic methods becomes a finite set of <em>actually</em> invoked generic methods at compile
+time.  The same is not true for a trait object: the code available at compile time has to cope with all possible <code>T</code>s
+that might arrive at run-time.</p>
+<p>These two restrictions – no returning <code>Self</code> and no generic methods – are combined into the concept of
+<em><a name="a036"></a>object safety</em>.  Only object safe traits can be used as trait objects.</p>
+<p><hr/>
+<p><a name="footnote-1"><a href="#to-footnote-1">1</a></a>: At least, not in
+stable Rust at the time of writing. The
+<a href="https://doc.rust-lang.org/nightly/unstable-book/language-features/unboxed-closures.html"><code>unboxed_closures</code></a> and
+<a href="https://doc.rust-lang.org/nightly/unstable-book/library-features/fn-traits.html"><code>fn_traits</code></a> experimental features may
+change this in future.</p>
+<p><a name="footnote-2"><a href="#to-footnote-2">2</a></a>: For example,
+<a name="a020"></a><a href="https://www.oreilly.com/library/view/effective-java/9780134686097/"><em>Effective Java</em></a> Item 64: Refer to objects
+by their interfaces</p>
+<p><a name="footnote-3"><a href="#to-footnote-3">3</a></a>: The addition of
+<a href="https://en.cppreference.com/w/cpp/language/constraints"><em>concepts</em></a> in <a name="a028"></a>C++20 allows explicit specification of
+constraints on template types, but the checks are still only performed when the template is instantiated, not when it is
+declared.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="use-types.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="transform.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="use-types.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="transform.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="src/third_party/ferris/ferris.js"></script>
+
+
+    </div>
+    </body>
+</html>

@@ -4,11 +4,6 @@ base_url = "https://doc.rust-lang.org/book"
 directory = "mdbooks/book/src/"
 
 [[sources]]
-title = "Rust Book 1st edition"
-base_url = "https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition"
-directory = "mdbooks/book/first-edition/src/"
-
-[[sources]]
 title = "Comprehensive Rust"
 base_url = "https://google.github.io/comprehensive-rust"
 directory = "mdbooks/comprehensive-rust/src/"
@@ -20,5 +15,26 @@ directory = "mdbooks/rust-by-example/src"
 
 [[sources]]
 title = "Rust vs Python"
-base_url = "https://alice-bob.dev"
+base_url = "https://rust-indexed.com/rust-vs-python"
 directory = "mdbooks/rust-vs-python/src"
+
+[[sources]]
+title = "The Rustonomicon"
+base_url = "https://doc.rust-lang.org/nomicon"
+directory = "mdbooks/nomicon/src"
+
+[[sources]]
+title = "Cookin' with Rust"
+base_url = "https://rust-lang-nursery.github.io/rust-cookbook"
+directory = "mdbooks/rust-cookbook/src"
+
+[[sources]]
+title = "Yet Another Rust Resource (YARR!)"
+base_url = "https://yet-another-rust-resource.pages.dev"
+directory = "mdbooks/yet-another-rust-resource/src"
+
+[[sources]]
+title = "Effectie Rust"
+base_url = "https://www.lurklurk.org/effective-rust"
+directory = "mdbooks/lurk-effective-rust/"
+is_html = true

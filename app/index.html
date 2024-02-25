@@ -37,11 +37,8 @@
 </div>
 
 <div id="search-results-container" class="container">
-    <div id="alert" class="alert alert-danger d-none" role="alert">
-        Ups, something went wrong :/
-    </div>
-    <div id="search-results">
-    </div>
+    <div id="alert" class="alert d-none" role="alert"></div>
+    <div id="search-results"></div>
 </div>
 
 <div class="mx-auto" style="margin: auto">
@@ -83,12 +80,13 @@
     const resultsContainer = document.getElementById('search-results');
     const searchMore = document.getElementById('search-more');
     const searchInput = document.getElementById('search-input');
+    const alertContainer = document.getElementById('alert');
 
     function create_result_row(result) {
         let html = `
         <div class="row border-bottom search-res-row">
-            <h4><a href="${result.url}" class="text-primary search-res-title">${result.title}</a></h4>
-            <p><a href="${result.url}" class="text-muted search-res-url">${result.url}</a></p>
+            <h4><a href="${result.url}" class="text-primary search-res-title" target="_blank">${result.title}</a></h4>
+            <p><a href="${result.url}" class="text-muted search-res-url" target="_blank">${result.url}</a></p>
         `;
 
         if (result.snippet) {
@@ -112,7 +110,8 @@
     document.getElementById('search-form').addEventListener('submit', function (event) {
         event.preventDefault();
         query = searchInput.value;
-        window.location.hash = query;
+        window.location.hash = query.replace(/ /g, '+');
+        page = 0;
         render_search();
     });
 
@@ -126,7 +125,7 @@
         document.getElementById('search-results').innerHTML = "";
         document.getElementById('welcome').style.display = "none";
         document.getElementById('header-img').src = "head-small.png";
-        document.getElementById("alert").classList.add('d-none');
+        alertContainer.classList.add('d-none');
         searchMore.classList.add("d-none");
         searchInput.select();
         results = [];
@@ -134,6 +133,10 @@
     }
 
     function render_results() {
+        if (!results.length) {
+            return;
+        }
+
         let slice = results.slice(page * 10 , (page + 1) * 10);
 
         if (slice.length >= 10) {
@@ -151,7 +154,6 @@
     }
 
     function search() {
-
         if (results.length) {
             render_results();
             return;
@@ -166,16 +168,25 @@
         })
         .then(data => {
             results = data.results;
+            if (!results.length) {
+                let new_query = "rust+" + query.replace(/ /g, '+');
+                let brave = `https://search.brave.com/search?q=${new_query}`;
+                alertContainer.classList.add('alert-info');
+                alertContainer.innerHTML = `No results :(<br/><a href="${brave}" target="_blank">Search in Brave Search &raquo;</a>`;
+                alertContainer.classList.remove('d-none');
+            }
             render_results();
         })
         .catch(error => {
-            document.getElementById("alert").classList.remove('d-none');
+            alertContainer.classList.add('alert-danger');
+            alertContainer.innerHTML = `Ups, something went wrong :/<br/>${error}`;
+            alertContainer.classList.remove('d-none');
             console.error('Error:', error);
         });
     }
 
     if (window.location.hash.length > 1) {
-        query = window.location.hash.slice(1);
+        query = window.location.hash.slice(1).replace(/\+/g, ' ');
         searchInput.value = decodeURIComponent(query);
         render_search();
     }

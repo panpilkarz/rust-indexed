@@ -1,0 +1,521 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Item 4: Prefer idiomatic Error variants - Effective Rust</title>
+
+
+        <!-- Custom HTML head -->
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-23228806-1']);
+          _gaq.push(['_trackPageview']);
+        
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+        <meta name="description" content="A collection of specific ways to improve your use of Rust">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="src/third_party/ferris/ferris.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="cover.html"><strong aria-hidden="true">1.</strong> Cover</a></li><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">2.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">3.</strong> Types</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="use-types.html"><strong aria-hidden="true">3.1.</strong> Item 1: Use the type system to express your data structures</a></li><li class="chapter-item expanded "><a href="use-types-2.html"><strong aria-hidden="true">3.2.</strong> Item 2: Use the type system to express common behaviour</a></li><li class="chapter-item expanded "><a href="transform.html"><strong aria-hidden="true">3.3.</strong> Item 3: Avoid matching Option and Result</a></li><li class="chapter-item expanded "><a href="errors.html" class="active"><strong aria-hidden="true">3.4.</strong> Item 4: Prefer idiomatic Error variants</a></li><li class="chapter-item expanded "><a href="std-traits.html"><strong aria-hidden="true">3.5.</strong> Item 5: Familiarize yourself with standard traits</a></li><li class="chapter-item expanded "><a href="casts.html"><strong aria-hidden="true">3.6.</strong> Item 6: Understand type conversions</a></li><li class="chapter-item expanded "><a href="newtype.html"><strong aria-hidden="true">3.7.</strong> Item 7: Embrace the newtype pattern</a></li><li class="chapter-item expanded "><a href="builders.html"><strong aria-hidden="true">3.8.</strong> Item 8: Use builders for complex types</a></li><li class="chapter-item expanded "><a href="references.html"><strong aria-hidden="true">3.9.</strong> Item 9: Familiarize yourself with reference and pointer types</a></li><li class="chapter-item expanded "><a href="iterators.html"><strong aria-hidden="true">3.10.</strong> Item 10: Consider using iterator transforms instead of explicit loops</a></li><li class="chapter-item expanded "><a href="raii.html"><strong aria-hidden="true">3.11.</strong> Item 11: Implement the Drop trait for RAII patterns</a></li><li class="chapter-item expanded "><a href="generics.html"><strong aria-hidden="true">3.12.</strong> Item 12: Prefer generics to trait objects</a></li><li class="chapter-item expanded "><a href="default-impl.html"><strong aria-hidden="true">3.13.</strong> Item 13: Use default implementations to minimize required trait methods</a></li></ol></li><li class="chapter-item expanded "><a href="concepts.html"><strong aria-hidden="true">4.</strong> Concepts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="lifetimes.html"><strong aria-hidden="true">4.1.</strong> Item 14: Understand lifetimes</a></li><li class="chapter-item expanded "><a href="borrows.html"><strong aria-hidden="true">4.2.</strong> Item 15: Understand the borrow checker</a></li><li class="chapter-item expanded "><a href="unsafe.html"><strong aria-hidden="true">4.3.</strong> Item 16: Avoid writing unsafe code</a></li><li class="chapter-item expanded "><a href="deadlock.html"><strong aria-hidden="true">4.4.</strong> Item 17: Be wary of shared-state parallelism</a></li><li class="chapter-item expanded "><a href="panic.html"><strong aria-hidden="true">4.5.</strong> Item 18: Don't panic</a></li><li class="chapter-item expanded "><a href="reflection.html"><strong aria-hidden="true">4.6.</strong> Item 19: Avoid reflection</a></li><li class="chapter-item expanded "><a href="optimize.html"><strong aria-hidden="true">4.7.</strong> Item 20: Avoid the temptation to over-optimize</a></li></ol></li><li class="chapter-item expanded "><a href="deps.html"><strong aria-hidden="true">5.</strong> Dependencies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.1.</strong> Item 21: Understand what semantic versioning promises</a></li><li class="chapter-item expanded "><a href="visibility.html"><strong aria-hidden="true">5.2.</strong> Item 22: Minimize visibility</a></li><li class="chapter-item expanded "><a href="wildcard.html"><strong aria-hidden="true">5.3.</strong> Item 23: Avoid wildcard imports</a></li><li class="chapter-item expanded "><a href="re-export.html"><strong aria-hidden="true">5.4.</strong> Item 24: Re-export dependencies whose types appear in your API</a></li><li class="chapter-item expanded "><a href="dep-graph.html"><strong aria-hidden="true">5.5.</strong> Item 25: Manage your dependency graph</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">5.6.</strong> Item 26: Be wary of feature creep</a></li></ol></li><li class="chapter-item expanded "><a href="tooling.html"><strong aria-hidden="true">6.</strong> Tooling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="documentation.html"><strong aria-hidden="true">6.1.</strong> Item 27: Document public interfaces</a></li><li class="chapter-item expanded "><a href="macros.html"><strong aria-hidden="true">6.2.</strong> Item 28: Use macros judiciously</a></li><li class="chapter-item expanded "><a href="clippy.html"><strong aria-hidden="true">6.3.</strong> Item 29: Listen to Clippy</a></li><li class="chapter-item expanded "><a href="testing.html"><strong aria-hidden="true">6.4.</strong> Item 30: Write more than unit tests</a></li><li class="chapter-item expanded "><a href="use-tools.html"><strong aria-hidden="true">6.5.</strong> Item 31: Take advantage of the tooling ecosystem</a></li><li class="chapter-item expanded "><a href="ci.html"><strong aria-hidden="true">6.6.</strong> Item 32: Set up a continuous integration (CI) system</a></li></ol></li><li class="chapter-item expanded "><a href="beyond-std.html"><strong aria-hidden="true">7.</strong> Beyond Standard Rust</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="no-std.html"><strong aria-hidden="true">7.1.</strong> Item 33: Consider making library code no_std compatible</a></li><li class="chapter-item expanded "><a href="ffi.html"><strong aria-hidden="true">7.2.</strong> Item 34: Control what crosses FFI boundaries</a></li><li class="chapter-item expanded "><a href="bindgen.html"><strong aria-hidden="true">7.3.</strong> Item 35: Prefer bindgen to manual FFI mappings</a></li></ol></li><li class="chapter-item expanded "><a href="indexing.html"><strong aria-hidden="true">8.</strong> Index</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Effective Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="item-4-prefer-idiomatic-error-variants"><a class="header" href="#item-4-prefer-idiomatic-error-variants">Item 4: Prefer idiomatic <code>Error</code> variants</a></h1>
+<p><a href="transform.html">Item 3</a> described how to use the transformations that the standard library provides for the <a name="a001"></a><code>Option</code> and
+<a name="a002"></a><code>Result</code> types to allow concise, idiomatic handling of result types using the <a name="a003"></a><code>?</code> operator.  It stopped
+short of discussing how best to handle the variety of different error types <code>E</code> that arise as the second type argument
+of a <code>Result&lt;T, E&gt;</code>; that's the subject of this Item.</p>
+<p>This is only really relevant when there <em>are</em> a variety of different error types in play; if all of the different errors
+that a function encounters are already of the same type, it can just return that type.  When there are errors of
+different types, there's a decision to be made about whether the sub-error type information should be preserved.</p>
+<h2 id="the-error-trait"><a class="header" href="#the-error-trait">The <code>Error</code> Trait</a></h2>
+<p>It's always good to understand what the standard traits (<a href="std-traits.html">Item 5</a>) involve, and the relevant trait here is
+<a name="a004"></a><a href="https://doc.rust-lang.org/std/error/trait.Error.html"><code>std::error::Error</code></a>.  The <code>E</code> type parameter for a
+<code>Result</code> doesn't <em>have</em> to be a type that implements <code>Error</code>, but it's a common convention that allows wrappers to
+express appropriate trait bounds – so <strong>prefer to implement <code>Error</code> for your error types</strong>.  However, if you're
+writing code for a <a name="a005"></a><code>no_std</code> environment (<a href="no-std.html">Item 33</a>), this recommendation is more awkward to apply – the
+<code>Error</code> trait is currently<sup><a name="to-footnote-1"><a href="#footnote-1">1</a></a></sup> implemented in
+<code>std</code>, not <a name="a006"></a><code>core</code>, and so is not available.</p>
+<p>The first thing to notice is that the only hard requirement for <code>Error</code> types is the <a name="a007"></a>trait bounds: any type that
+implements <code>Error</code> also has to implement both:</p>
+<ul>
+<li>the <a name="a008"></a><code>Display</code> trait, meaning that it can be <code>format!</code>ed with <code>{}</code>, and</li>
+<li>the <a name="a009"></a><code>Debug</code> trait, meaning that it can be <code>format!</code>ed with <code>{:?}</code>.</li>
+</ul>
+<p>In other words, it should be possible to display <code>Error</code> types to both the user and the programmer.</p>
+<p>The only<sup><a name="to-footnote-2"><a href="#footnote-2">2</a></a></sup> method in the trait is
+<a href="https://doc.rust-lang.org/std/error/trait.Error.html#method.source"><code>source()</code></a>, which allows an <code>Error</code> type to expose
+an inner, nested error.  This method is optional – it comes with a <a name="a010"></a>default implementation (<a href="default-impl.html">Item 13</a>)
+returning <code>None</code>, indicating that inner error information isn't available.</p>
+<h2 id="minimal-errors"><a class="header" href="#minimal-errors">Minimal Errors</a></h2>
+<p>If nested error information isn't needed, then an implementation of the <code>Error</code> type need not be much more than a
+<code>String</code> – one rare occasion where a &quot;stringly-typed&quot; variable might be appropriate.  It does need to be a
+<em>little</em> more than a <code>String</code> though; while it's possible to use <code>String</code> as the <code>E</code> type parameter:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    pub fn find_user(username: &amp;str) -&gt; Result&lt;UserId, String&gt; {
+        let f = std::fs::File::open(&quot;/etc/passwd&quot;)
+            .map_err(|e| format!(&quot;Failed to open password file: {:?}&quot;, e))?;
+        // ...
+    }
+<span class="boring">}</span></code></pre></pre>
+<p>a <code>String</code> doesn't implement <code>Error</code>, which we'd prefer so that other areas of code can deal in <code>Error</code>s.  It's not
+possible to <code>impl Error</code> for <code>String</code>, because neither the trait nor the type belong to us (the so-called <em><a name="a011"></a>orphan
+rule</em>):</p>
+<pre><code class="language-rust ignore does_not_compile">    impl std::error::Error for String {}</code></pre>
+<pre><code class="language-text">error[E0117]: only traits defined in the current crate can be implemented for arbitrary types
+  --&gt; errors/src/main.rs:20:5
+   |
+20 |     impl std::error::Error for String {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^------
+   |     |                          |
+   |     |                          `String` is not defined in the current crate
+   |     impl doesn't use only types from inside the current crate
+   |
+   = note: define and implement a trait or new type instead
+</code></pre>
+<p>A <a name="a012"></a><a href="https://doc.rust-lang.org/reference/items/type-aliases.html"><em>type alias</em></a> doesn't help either,
+because it doesn't create a new type and so doesn't change the error message.</p>
+<pre><code class="language-rust ignore does_not_compile">    pub type MyError = String;
+
+    impl std::error::Error for MyError {}</code></pre>
+<pre><code class="language-text">error[E0117]: only traits defined in the current crate can be implemented for arbitrary types
+  --&gt; errors/src/main.rs:43:5
+   |
+43 |     impl std::error::Error for MyError {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^-------
+   |     |                          |
+   |     |                          `String` is not defined in the current crate
+   |     impl doesn't use only types from inside the current crate
+   |
+   = note: define and implement a trait or new type instead
+</code></pre>
+<p>As usual, the compiler error message gives a hint of how to solve the problem.  Defining a tuple struct that wraps the
+<code>String</code> type (the &quot;<a name="a013"></a>newtype pattern&quot;, <a href="newtype.html">Item 7</a>) allows the <code>Error</code> trait to be implemented, provided that <code>Debug</code> and
+<code>Display</code> are implemented too:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    #[derive(Debug)]
+    pub struct MyError(String);
+
+    impl std::fmt::Display for MyError {
+        fn fmt(&amp;self, f: &amp;mut std::fmt::Formatter&lt;'_&gt;) -&gt; std::fmt::Result {
+            write!(f, &quot;{}&quot;, self.0)
+        }
+    }
+
+    impl std::error::Error for MyError {}
+
+    pub fn find_user(username: &amp;str) -&gt; Result&lt;UserId, MyError&gt; {
+        let f = std::fs::File::open(&quot;/etc/passwd&quot;).map_err(|e| {
+            MyError(format!(&quot;Failed to open password file: {:?}&quot;, e))
+        })?;
+        // ...
+    }
+<span class="boring">}</span></code></pre></pre>
+<p>For convenience, it may make sense to implement the <a name="a014"></a><code>From&lt;String&gt;</code> trait to allow string values to be
+easily converted into <code>MyError</code> instances (<a href="casts.html">Item 6</a>):</p>
+<pre><code class="language-rust ignore">    impl std::convert::From&lt;String&gt; for MyError {
+        fn from(msg: String) -&gt; Self {
+            Self(msg)
+        }
+    }</code></pre>
+<p>When it encounters the <a name="a015"></a>question mark operator (<strong><code>?</code></strong>), the compiler will automatically apply any relevant
+<a name="a016"></a><code>From</code> trait implementations that are needed to reach the destination error return type.  This allows further
+minimization:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    pub fn find_user(username: &amp;str) -&gt; Result&lt;UserId, MyError&gt; {
+        let f = std::fs::File::open(&quot;/etc/passwd&quot;)
+            .map_err(|e| format!(&quot;Failed to open password file: {:?}&quot;, e))?;
+        // ...
+    }
+<span class="boring">}</span></code></pre></pre>
+<p>For the error path here:</p>
+<ul>
+<li><code>File::open</code> returns an error of type <a href="https://doc.rust-lang.org/stable/std/io/struct.Error.html"><code>std::io::Error</code></a>.</li>
+<li><code>format!</code> converts this to a <code>String</code>, using the <code>Debug</code> implementation of <code>std::io::Error</code>.</li>
+<li><code>?</code> makes the compiler look for and use a <code>From</code> implementation that can take it from <code>String</code> to <code>MyError</code>.</li>
+</ul>
+<h2 id="nested-errors"><a class="header" href="#nested-errors">Nested Errors</a></h2>
+<p>The alternative scenario is where the content of nested errors is important enough that it should be preserved and made
+available to the caller.</p>
+<p>Consider a library function that attempts to return the first line of a file as a string, as long as the line is not too
+long. A moment's thought reveals (at least) three distinct types of failure that could occur:</p>
+<ul>
+<li>The file might not exist, or might be inaccessible for reading.</li>
+<li>The file might contain data that isn't valid <a name="a017"></a>UTF-8, and so can't be converted into a <code>String</code>.</li>
+<li>The file might have a first line that is too long.</li>
+</ul>
+<p>In line with <a href="use-types.html">Item 1</a>, you can use the type system to express and encompass all of these possibilities as an
+<a name="a018"></a><code>enum</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Debug)]
+pub enum MyError {
+    Io(std::io::Error),
+    Utf8(std::string::FromUtf8Error),
+    General(String),
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This <code>enum</code> definition includes a <a name="a019"></a><code>derive(Debug)</code>, but to satisfy the <code>Error</code> trait a <code>Display</code> implementation is also
+needed.</p>
+<pre><code class="language-rust ignore">impl std::fmt::Display for MyError {
+    fn fmt(&amp;self, f: &amp;mut std::fmt::Formatter&lt;'_&gt;) -&gt; std::fmt::Result {
+        match self {
+            MyError::Io(e) =&gt; write!(f, &quot;IO error: {}&quot;, e),
+            MyError::Utf8(e) =&gt; write!(f, &quot;UTF-8 error: {}&quot;, e),
+            MyError::General(s) =&gt; write!(f, &quot;General error: {}&quot;, s),
+        }
+    }
+}</code></pre>
+<p>It also makes sense to override the default <code>source()</code> implementation for easy access to nested errors.</p>
+<pre><code class="language-rust ignore">use std::error::Error;
+
+impl Error for MyError {
+    fn source(&amp;self) -&gt; Option&lt;&amp;(dyn Error + 'static)&gt; {
+        match self {
+            MyError::Io(e) =&gt; Some(e),
+            MyError::Utf8(e) =&gt; Some(e),
+            MyError::General(_) =&gt; None,
+        }
+    }
+}</code></pre>
+<p>This allows the error handling to be concise while still preserving all of the type information across different classes
+of error:</p>
+<pre><code class="language-rust ignore">    /// Return the first line of the given file.
+    pub fn first_line(filename: &amp;str) -&gt; Result&lt;String, MyError&gt; {
+        let file = std::fs::File::open(filename).map_err(MyError::Io)?;
+        let mut reader = std::io::BufReader::new(file);
+
+        // (A real implementation could just use `reader.read_line()`)
+        let mut buf = vec![];
+        let len = reader.read_until(b'\n', &amp;mut buf).map_err(MyError::Io)?;
+        let result = String::from_utf8(buf).map_err(MyError::Utf8)?;
+        if result.len() &gt; MAX_LEN {
+            return Err(MyError::General(format!(&quot;Line too long: {}&quot;, len)));
+        }
+        Ok(result)
+    }</code></pre>
+<p>It's also a good idea to implement the <a name="a020"></a><code>From</code> trait for all of the sub-error types (<a href="casts.html">Item 6</a>):</p>
+<pre><code class="language-rust ignore">impl From&lt;std::io::Error&gt; for MyError {
+    fn from(e: std::io::Error) -&gt; Self {
+        Self::Io(e)
+    }
+}
+impl From&lt;std::string::FromUtf8Error&gt; for MyError {
+    fn from(e: std::string::FromUtf8Error) -&gt; Self {
+        Self::Utf8(e)
+    }
+}</code></pre>
+<p>This prevents library users from suffering under the <a name="a021"></a>orphan rules themselves: they aren't allowed to implement <code>From</code> on
+<code>MyError</code>, because both the trait and the struct are external to them.</p>
+<p>Better still, implementing <a name="a022"></a><code>From</code> allows for even more concision, because the <a name="a023"></a><a href="https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator">question mark
+operator</a> will
+automatically perform any necessary <code>From</code> conversions:</p>
+<pre><code class="language-rust ignore">    /// Return the first line of the given file.
+    pub fn first_line(filename: &amp;str) -&gt; Result&lt;String, MyError&gt; {
+        let file = std::fs::File::open(filename)?; // via `From&lt;std::io::Error&gt;`
+        let mut reader = std::io::BufReader::new(file);
+        let mut buf = vec![];
+        let len = reader.read_until(b'\n', &amp;mut buf)?; // via `From&lt;std::io::Error&gt;`
+        let result = String::from_utf8(buf)?; // via `From&lt;std::string::FromUtf8Error&gt;`
+        if result.len() &gt; MAX_LEN {
+            return Err(MyError::General(format!(&quot;Line too long: {}&quot;, len)));
+        }
+        Ok(result)
+    }</code></pre>
+<p>Writing a complete error type can involve a fair amount of boilerplate; <strong>consider using the
+<a name="a024"></a><a href="https://docs.rs/thiserror"><code>thiserror</code></a> crate</strong> to help with this, as it reduces the effort involved without
+adding an extra runtime dependency.</p>
+<h2 id="trait-objects"><a class="header" href="#trait-objects">Trait Objects</a></h2>
+<p>The first approach to nested errors threw away all of the sub-error detail, just preserving some string output
+(<code>format!(&quot;{:?}&quot;, err)</code>).  The second approach preserved the full type information for all possible sub-errors, but
+required a full enumeration of all possible types of sub-error.</p>
+<p>This raises the question: is there a half-way house between these two approaches, preserving sub-error information
+without needing to manually include every possible error type?</p>
+<p>Encoding the sub-error information as a <a name="a025"></a><a href="https://doc.rust-lang.org/reference/types/trait-object.html"><em>trait
+object</em></a> avoids the need for an <code>enum</code> variant for every
+possibility, but erases the details of the specific underlying error types. The receiver of such an object would have
+access to the methods of the <code>Error</code> trait – <code>display()</code>, <code>debug()</code> and <code>source()</code> in turn – but wouldn't
+know the original static type of the sub-error.</p>
+<pre><code class="language-rust ignore not_desired_behaviour">#[derive(Debug)]
+pub enum WrappedError {
+    Wrapped(Box&lt;dyn Error&gt;),
+    General(String),
+}
+
+impl std::fmt::Display for WrappedError {
+    fn fmt(&amp;self, f: &amp;mut std::fmt::Formatter&lt;'_&gt;) -&gt; std::fmt::Result {
+        match self {
+            Self::Wrapped(e) =&gt; write!(f, &quot;Inner error: {}&quot;, e),
+            Self::General(s) =&gt; write!(f, &quot;{}&quot;, s),
+        }
+    }
+}</code></pre>
+<p>It turns out that this <em>is</em> possible, but it's surprisingly subtle. Part of the difficulty comes from the object safety
+constraints on trait objects (<a href="generics.html">Item 12</a>), but Rust's <em>coherence rules</em> also come into play, which (roughly) say that
+there can be at most one implementation of a trait for a type.</p>
+<p>A putative <code>WrappedError</code> would naively be expected to both implement the <code>Error</code> trait, and also to implement the
+<code>From&lt;Error&gt;</code> trait to allow sub-errors to be easily wrapped.  That means that a <code>WrappedError</code> can be created <code>from</code> an
+inner <code>WrappedError</code>, as <code>WrappedError</code> implements <code>Error</code>, and that clashes with the <a name="a026"></a>blanket reflexive implementation of <code>From</code>:</p>
+<pre><code class="language-text">error[E0119]: conflicting implementations of trait `std::convert::From&lt;WrappedError&gt;` for type `WrappedError`
+   --&gt; errors/src/main.rs:253:1
+    |
+253 | impl&lt;E: 'static + Error&gt; From&lt;E&gt; for WrappedError {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: conflicting implementation in crate `core`:
+            - impl&lt;T&gt; From&lt;T&gt; for T;
+</code></pre>
+<p><a name="a027"></a>David Tolnay's <a name="a028"></a><a href="https://docs.rs/anyhow"><code>anyhow</code></a> is a crate that has already solved these
+<a href="https://github.com/dtolnay/anyhow/issues/63">problems</a>, and which adds other helpful features (such as stack traces)
+besides. As a result, it is rapidly becoming the standard recommendation for error handling – a recommendation
+seconded here: <strong>consider using the <code>anyhow</code> crate for error handling in applications</strong>.</p>
+<h2 id="libraries-versus-applications"><a class="header" href="#libraries-versus-applications">Libraries versus Applications</a></h2>
+<p>The final advice of the previous section included the qualification &quot;…for error handling <em>in applications</em>&quot;.
+That's because there's often a distinction between code that's written for re-use in a library, and code that forms a
+top-level application<sup><a name="to-footnote-3"><a href="#footnote-3">3</a></a></sup>.</p>
+<p>Code that's written for a library can't predict the environment in which the code is used, so it's preferable to emit
+concrete, detailed error information, and leave the caller to figure out how to use that information. This leans towards
+the <code>enum</code>-style nested errors described previously (and also avoids a dependency on <code>anyhow</code> in the public API of the
+library, cf. <a href="re-export.html">Item 24</a>).</p>
+<p>However, application code typically needs to concentrate more on how to present errors to the user. It also potentially
+has to cope with all of the different error types emitted by all of the libraries that are present in its dependency
+graph (<a href="dep-graph.html">Item 25</a>).  As such, a more dynamic error type (such as
+<a href="https://docs.rs/anyhow/latest/anyhow/struct.Error.html"><code>anyhow::Error</code></a>) makes error handling simpler and more
+consistent across the application.</p>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>This item has covered a lot of ground, so a summary is in order:</p>
+<ul>
+<li>The standard <code>Error</code> trait requires little of you, so prefer to implement it for your error types.</li>
+<li>When dealing with heterogeneous underlying error types, decide whether preserving those types is needed.
+<ul>
+<li>If not, consider using <code>anyhow</code> to wrap sub-errors in application code.</li>
+<li>If they are needed, encode them in an <code>enum</code> and provide conversions. Consider using <code>thiserror</code> to help with this.</li>
+</ul>
+</li>
+<li>Consider using the <code>anyhow</code> crate for convenient, idiomatic error handling.</li>
+</ul>
+<p>It's your decision, but whatever you decide, encode it in the type system (<a href="use-types.html">Item 1</a>).</p>
+<p><hr/>
+<p><a name="footnote-1"><a href="#to-footnote-1">1</a></a>: At the time of writing, <code>Error</code> has been <a href="https://github.com/rust-lang/rust/issues/103765">moved to
+<code>core</code></a> but is not yet available in stable Rust.</p>
+<p><a name="footnote-2"><a href="#to-footnote-2">2</a></a>: Or at least the only non-deprecated, stable method.</p>
+<p><a name="footnote-3"><a href="#to-footnote-3">3</a></a>: This section is inspired by <a name="a029"></a><a href="https://nick.groenen.me/posts/rust-error-handling/">Nick Groenen's &quot;Rust: Structuring and
+handling errors in 2020&quot; article</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="transform.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="std-traits.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="transform.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="std-traits.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="src/third_party/ferris/ferris.js"></script>
+
+
+    </div>
+    </body>
+</html>

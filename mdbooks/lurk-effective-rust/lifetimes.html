@@ -1,0 +1,722 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Item 14: Understand lifetimes - Effective Rust</title>
+
+
+        <!-- Custom HTML head -->
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-23228806-1']);
+          _gaq.push(['_trackPageview']);
+        
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+        <meta name="description" content="A collection of specific ways to improve your use of Rust">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="src/third_party/ferris/ferris.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="cover.html"><strong aria-hidden="true">1.</strong> Cover</a></li><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">2.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">3.</strong> Types</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="use-types.html"><strong aria-hidden="true">3.1.</strong> Item 1: Use the type system to express your data structures</a></li><li class="chapter-item expanded "><a href="use-types-2.html"><strong aria-hidden="true">3.2.</strong> Item 2: Use the type system to express common behaviour</a></li><li class="chapter-item expanded "><a href="transform.html"><strong aria-hidden="true">3.3.</strong> Item 3: Avoid matching Option and Result</a></li><li class="chapter-item expanded "><a href="errors.html"><strong aria-hidden="true">3.4.</strong> Item 4: Prefer idiomatic Error variants</a></li><li class="chapter-item expanded "><a href="std-traits.html"><strong aria-hidden="true">3.5.</strong> Item 5: Familiarize yourself with standard traits</a></li><li class="chapter-item expanded "><a href="casts.html"><strong aria-hidden="true">3.6.</strong> Item 6: Understand type conversions</a></li><li class="chapter-item expanded "><a href="newtype.html"><strong aria-hidden="true">3.7.</strong> Item 7: Embrace the newtype pattern</a></li><li class="chapter-item expanded "><a href="builders.html"><strong aria-hidden="true">3.8.</strong> Item 8: Use builders for complex types</a></li><li class="chapter-item expanded "><a href="references.html"><strong aria-hidden="true">3.9.</strong> Item 9: Familiarize yourself with reference and pointer types</a></li><li class="chapter-item expanded "><a href="iterators.html"><strong aria-hidden="true">3.10.</strong> Item 10: Consider using iterator transforms instead of explicit loops</a></li><li class="chapter-item expanded "><a href="raii.html"><strong aria-hidden="true">3.11.</strong> Item 11: Implement the Drop trait for RAII patterns</a></li><li class="chapter-item expanded "><a href="generics.html"><strong aria-hidden="true">3.12.</strong> Item 12: Prefer generics to trait objects</a></li><li class="chapter-item expanded "><a href="default-impl.html"><strong aria-hidden="true">3.13.</strong> Item 13: Use default implementations to minimize required trait methods</a></li></ol></li><li class="chapter-item expanded "><a href="concepts.html"><strong aria-hidden="true">4.</strong> Concepts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="lifetimes.html" class="active"><strong aria-hidden="true">4.1.</strong> Item 14: Understand lifetimes</a></li><li class="chapter-item expanded "><a href="borrows.html"><strong aria-hidden="true">4.2.</strong> Item 15: Understand the borrow checker</a></li><li class="chapter-item expanded "><a href="unsafe.html"><strong aria-hidden="true">4.3.</strong> Item 16: Avoid writing unsafe code</a></li><li class="chapter-item expanded "><a href="deadlock.html"><strong aria-hidden="true">4.4.</strong> Item 17: Be wary of shared-state parallelism</a></li><li class="chapter-item expanded "><a href="panic.html"><strong aria-hidden="true">4.5.</strong> Item 18: Don't panic</a></li><li class="chapter-item expanded "><a href="reflection.html"><strong aria-hidden="true">4.6.</strong> Item 19: Avoid reflection</a></li><li class="chapter-item expanded "><a href="optimize.html"><strong aria-hidden="true">4.7.</strong> Item 20: Avoid the temptation to over-optimize</a></li></ol></li><li class="chapter-item expanded "><a href="deps.html"><strong aria-hidden="true">5.</strong> Dependencies</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.1.</strong> Item 21: Understand what semantic versioning promises</a></li><li class="chapter-item expanded "><a href="visibility.html"><strong aria-hidden="true">5.2.</strong> Item 22: Minimize visibility</a></li><li class="chapter-item expanded "><a href="wildcard.html"><strong aria-hidden="true">5.3.</strong> Item 23: Avoid wildcard imports</a></li><li class="chapter-item expanded "><a href="re-export.html"><strong aria-hidden="true">5.4.</strong> Item 24: Re-export dependencies whose types appear in your API</a></li><li class="chapter-item expanded "><a href="dep-graph.html"><strong aria-hidden="true">5.5.</strong> Item 25: Manage your dependency graph</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">5.6.</strong> Item 26: Be wary of feature creep</a></li></ol></li><li class="chapter-item expanded "><a href="tooling.html"><strong aria-hidden="true">6.</strong> Tooling</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="documentation.html"><strong aria-hidden="true">6.1.</strong> Item 27: Document public interfaces</a></li><li class="chapter-item expanded "><a href="macros.html"><strong aria-hidden="true">6.2.</strong> Item 28: Use macros judiciously</a></li><li class="chapter-item expanded "><a href="clippy.html"><strong aria-hidden="true">6.3.</strong> Item 29: Listen to Clippy</a></li><li class="chapter-item expanded "><a href="testing.html"><strong aria-hidden="true">6.4.</strong> Item 30: Write more than unit tests</a></li><li class="chapter-item expanded "><a href="use-tools.html"><strong aria-hidden="true">6.5.</strong> Item 31: Take advantage of the tooling ecosystem</a></li><li class="chapter-item expanded "><a href="ci.html"><strong aria-hidden="true">6.6.</strong> Item 32: Set up a continuous integration (CI) system</a></li></ol></li><li class="chapter-item expanded "><a href="beyond-std.html"><strong aria-hidden="true">7.</strong> Beyond Standard Rust</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="no-std.html"><strong aria-hidden="true">7.1.</strong> Item 33: Consider making library code no_std compatible</a></li><li class="chapter-item expanded "><a href="ffi.html"><strong aria-hidden="true">7.2.</strong> Item 34: Control what crosses FFI boundaries</a></li><li class="chapter-item expanded "><a href="bindgen.html"><strong aria-hidden="true">7.3.</strong> Item 35: Prefer bindgen to manual FFI mappings</a></li></ol></li><li class="chapter-item expanded "><a href="indexing.html"><strong aria-hidden="true">8.</strong> Index</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Effective Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="item-14-understand-lifetimes"><a class="header" href="#item-14-understand-lifetimes">Item 14: Understand lifetimes</a></h1>
+<blockquote>
+<p>&quot;Eppur si muove&quot; –  <a name="a001"></a>Galileo Galilei</p>
+</blockquote>
+<p>This Item describes Rust's <em><a name="a002"></a>lifetimes</em>, which are a more precise formulation of a concept that existed in previous
+compiled languages like C and C++ – in practice if not in theory.  Lifetimes are a required input for the <em>borrow
+checker</em> described in <a href="borrows.html">Item 15</a>; taken together these features form the heart of Rust's <a name="a003"></a>memory safety guarantees.</p>
+<h2 id="introduction-to-the-stack"><a class="header" href="#introduction-to-the-stack">Introduction to the Stack</a></h2>
+<p>Lifetimes are fundamentally related to the <em>stack</em>, so a quick introduction/reminder is in order.</p>
+<p>While a program is running, the memory that it uses is divided up into different chunks, sometimes called
+<em><a name="a004"></a>segments</em>.  Some of these chunks are a fixed size, such as the ones that hold the program code or the program's
+global data, but two of the chunks – the <em><a name="a005"></a>heap</em> and the <em><a name="a006"></a>stack</em> – change size as the program
+runs.  To allow for this, they are typically arranged at opposite ends of the program's virtual memory space, so one
+can grow downwards and the other can grow upwards (at least until your program runs out of memory and crashes).</p>
+<p><img alt="Program memory layout, including heap growing up and stack growing down" src="images/memorylayout.svg"
+width=756></p>
+<p>Of these two dynamically sized chunks, the stack is used to hold state related to the currently executing function,
+specifically its parameters, local variables and temporary values, held in a <em><a name="a007"></a>stack frame</em>.  When a function <code>f()</code>
+is called, a new stack frame is added to the stack, beyond where the stack frame for the calling function ends, and the
+CPU normally updates a register – the <em><a name="a008"></a>stack pointer</em> – to point to the new stack frame.</p>
+<p>When the inner function <code>f()</code> returns, the stack pointer is reset to where it was before the call, which will be the
+caller's stack frame, intact and unmodified.</p>
+<p>When the caller invokes a different function <code>g()</code>, the process happens again, which means that the stack frame for
+<code>g()</code> will re-use the same area of memory that <code>f()</code> previously used.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn caller() -&gt; u64 {
+    let x = 42u64;
+    let y = 19u64;
+    f(x) + g(y)
+}
+
+fn f(f_param: u64) -&gt; u64 {
+    let two = 2;
+    f_param + two
+}
+
+fn g(g_param: u64) -&gt; u64 {
+    let arr = [2, 3];
+    g_param + arr[1]
+}
+<span class="boring">}</span></code></pre></pre>
+<img alt="Evolution of stack usage as functions are called and returned from" src="images/stackuse.svg" width=756>
+<p>Of course, this is a dramatically simplified version of what really goes on; putting things on and off the stack takes
+time and so there are many optimizations for real processors.  However, the simplified conceptual picture is enough for
+understanding the subject of this Item.</p>
+<h2 id="evolution-of-lifetimes"><a class="header" href="#evolution-of-lifetimes">Evolution of Lifetimes</a></h2>
+<p>The previous section explained how parameters and local variables are stored on the stack, but only ephemerally.
+Historically, this allowed for some dangerous footguns: what happens if you hold onto a pointer to one of these
+ephemeral stack values?</p>
+<p>Starting back with <a name="a009"></a>C, it was perfectly OK to return a pointer to a local variable (although modern compilers will
+emit a warning for it):</p>
+<pre><code class="language-c not_desired_behaviour">/* C code. */
+struct File* open_bugged() {
+  struct File f = { open(&quot;README.md&quot;, O_RDONLY) };
+  return &amp;f;  // return address of stack object
+}
+</code></pre>
+<p>You <em>might</em> get away with this, if you're unlucky and the calling code uses the returned value immediately:</p>
+<pre><code class="language-c not_desired_behaviour">  struct File* f = open_bugged();
+  printf(&quot;in caller: file at %p has fd=%d\n&quot;, f, f-&gt;fd);
+</code></pre>
+<pre><code class="language-text">in caller: file at 0x7ff7b5ca9408 has fd=3
+</code></pre>
+<p>This is unlucky because it only <em>appears</em> to work.  As soon as any other function calls happen, the stack area will
+be re-used and the memory that used to hold the object will be overwritten:</p>
+<pre><code class="language-c not_desired_behaviour">  investigate_file(f);
+</code></pre>
+<pre><code class="language-c">/* C code. */
+void investigate_file(struct File* f) {
+  long array[4] = {1, 2, 3, 4}; // put things on the stack
+  printf(&quot;in function: file at %p has fd=%d\n&quot;, f, f-&gt;fd);
+}
+</code></pre>
+<pre><code class="language-text">in function: file at 0x7ff7b5ca9408 has fd=1842872565
+</code></pre>
+<p>Trashing the contents of the object has an additional bad effect for this example: the file descriptor corresponding to
+the open file is lost, and so the program leaks the resource that was held in the data structure.</p>
+<p>Moving forwards in time to <a name="a010"></a>C++, this problem of losing access to resources was solved by the inclusion of <em>destructors</em>,
+enabling <a name="a011"></a>RAII (cf. <a href="raii.html">Item 11</a>).  Now, the things on the stack have the ability to tidy themselves up: if the object holds
+some kind of resource, the destructor can tidy it up and the C++ compiler guarantees that the destructor of an object on
+the stack gets called as part of tidying up the stack frame.</p>
+<pre><code class="language-c++">  // C++ code.
+  ~File() {
+    std::cout &lt;&lt; &quot;~File(): close fd &quot; &lt;&lt; fd &lt;&lt; &quot;\n&quot;;
+    close(fd);
+    fd = -1;
+  }
+</code></pre>
+<p>The caller now gets an (invalid) pointer to an object that's been destroyed and its resources reclaimed:</p>
+<pre><code class="language-c++ not_desired_behaviour">  File* f = open_bugged();
+  printf(&quot;in caller: file at %p has fd=%d\n&quot;, f, f-&gt;fd);
+</code></pre>
+<pre><code class="language-text">~File(): close fd 3
+in caller: file at 0x7ff7b57ef408 has fd=-1
+</code></pre>
+<p>However, C++ did nothing to help with the problem of dangling pointers: it's still possible to hold on to a pointer to an
+object that's gone (and whose destructor has been called).</p>
+<pre><code class="language-c">// C++ code.
+void investigate_file(File* f) {
+  long array[4] = {1, 2, 3, 4}; // put things on the stack
+  std::cout &lt;&lt; &quot;in function: file at &quot; &lt;&lt; f &lt;&lt; &quot; has fd=&quot; &lt;&lt; f-&gt;fd &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+<pre><code class="language-text">in function: file at 0x7ff7b57ef408 has fd=1711145032
+</code></pre>
+<p>As a C/C++ programmer, it's up to you to notice this, and make sure that you don't dereference a pointer that points to
+something that's gone.  Alternatively, if you're an <a name="a012"></a>attacker and you find one of these dangling pointers, you're
+more likely to <a name="a013"></a>cackle maniacally and gleefully dereference the pointer on your way to an exploit.</p>
+<p>Enter Rust.  One of Rust's core attractions is that it fundamentally solves the problem of dangling pointers,
+immediately solving a large fraction<sup><a name="to-footnote-1"><a href="#footnote-1">1</a></a></sup> of security problems.</p>
+<p>Doing so requires that the concept of lifetimes move from the background (where C/C++ programmers have to just know to
+watch out for them, without any language support) to the foreground: every type that includes an ampersand <strong><code>&amp;</code></strong> has
+an associated lifetime (<strong><code>'a</code></strong>), even if the compiler lets you omit mention of it much of the time.</p>
+<h2 id="scope-of-a-lifetime"><a class="header" href="#scope-of-a-lifetime">Scope of a Lifetime</a></h2>
+<p>The lifetime of an item on the stack is the period where that item is guaranteed to stay in the same place; in other
+words, this is exactly the period where a <em><a name="a015"></a>reference</em> (pointer) to item is guaranteed not to become invalid.</p>
+<p>This starts at the point where the item is created, and extends to where it is either:</p>
+<ul>
+<li><a name="a016"></a><strong>dropped</strong> (Rust's equivalent to object destruction in C++), or</li>
+<li><a name="a017"></a><strong>moved</strong>.</li>
+</ul>
+<p>(The ubiquity of the latter is sometimes surprising for programmers coming from C/C++: Rust moves items from one place on
+the stack to another, or from the stack to the heap, or from the heap to the stack, in lots of situations.)</p>
+<p>Precisely where an item gets automatically dropped depends on whether an item has a name or not.</p>
+<p>Local variables and function parameters have names, and the corresponding item's lifetime starts when the item is
+created and the name is populated:</p>
+<ul>
+<li>For a local variable: at the <code>let var = ...</code> declaration.</li>
+<li>For a function parameter: as part of setting up the execution frame for the function invocation.</li>
+</ul>
+<p>The lifetime for a named item ends when the item is either moved somewhere else, or when the name goes out of
+<a name="a018"></a>scope:</p>
+<pre><code class="language-rust ignore">        {
+            let item1 = Item { contents: 1 }; // `item1` created here
+            let item2 = Item { contents: 2 }; // `item2` created here
+            println!(&quot;item1 = {:?}, item2 = {:?}&quot;, item1, item2);
+            consuming_fn(item2); // `item2` moved here
+        } // `item1` dropped here</code></pre>
+<p>It's also possible to build an item &quot;on the fly&quot;, as part of an expression that's then fed into something else.  These
+unnamed temporary items are then dropped when they're no longer needed.  One over-simplified but helpful way to think
+about this is to imagine that each branch of the expression's syntax tree gets expanded to its own block, with temporary
+variables being inserted by the compiler.  For example, an expression like:</p>
+<pre><code class="language-rust ignore">    let x = f((a + b) * 2);</code></pre>
+<p>would be roughly equivalent to:</p>
+<pre><code class="language-rust ignore">    let x = {
+        let temp1 = a + b;
+        {
+            let temp2 = temp1 * 2;
+            f(temp2)
+        } // `temp2` dropped here
+    }; // `temp1` dropped here</code></pre>
+<p>By the time execution reaches the <a name="a019"></a>semicolon at the end of the line, the <a name="a020"></a>temporaries have all been dropped.</p>
+<p>One way to see what the compiler calculates as an item's lifetime is to insert a deliberate error for the borrow checker
+(<a href="borrows.html">Item 15</a>) to detect.  For example, hold onto a reference beyond the lifetime's scope:</p>
+<pre><code class="language-rust ignore does_not_compile">        let r: &amp;Item;
+        {
+            let item = Item { contents: 42 };
+            r = &amp;item;
+        }
+        println!(&quot;r.contents = {}&quot;, r.contents);</code></pre>
+<p>The error message indicates the exact endpoint of <code>item</code>'s lifetime:</p>
+<pre><code class="language-text">error[E0597]: `item` does not live long enough
+   --&gt; lifetimes/src/main.rs:206:17
+    |
+206 |             r = &amp;item;
+    |                 ^^^^^ borrowed value does not live long enough
+207 |         }
+    |         - `item` dropped here while still borrowed
+208 |         println!(&quot;r.contents = {}&quot;, r.contents);
+    |                                     ---------- borrow later used here
+</code></pre>
+<p>Similarly, for an unnamed temporary:</p>
+<pre><code class="language-rust ignore does_not_compile">        let r: &amp;Item = fn_returning_ref(&amp;mut Item { contents: 42 });
+        println!(&quot;r.contents = {}&quot;, r.contents);</code></pre>
+<p>the error message shows the endpoint at the end of the expression:</p>
+<pre><code class="language-text">error[E0716]: temporary value dropped while borrowed
+   --&gt; lifetimes/src/main.rs:236:46
+    |
+236 |         let r: &amp;Item = fn_returning_ref(&amp;mut Item { contents: 42 });
+    |                                              ^^^^^^^^^^^^^^^^^^^^^ - temporary value is freed at the end of this statement
+    |                                              |
+    |                                              creates a temporary which is freed while still in use
+237 |         println!(&quot;r.contents = {}&quot;, r.contents);
+    |                                     ---------- borrow later used here
+    |
+    = note: consider using a `let` binding to create a longer lived value
+</code></pre>
+<p>One final point about the lifetimes of <em>references</em>: if the compiler can prove to itself that there is no use of a
+reference beyond a certain point in the code, then it treats the endpoint of the reference's lifetime as the last place
+it's used, rather than the end of the enclosing scope.  This feature (known as <a name="a021"></a><a href="https://rust-lang.github.io/rfcs/2094-nll.html">non-lexical
+lifetimes</a>) allows the borrow checker to be a little bit more
+generous:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>    {
+        let mut s: String = &quot;Hello, world&quot;.to_string(); // `s` owns the `String`
+
+        let greeting = &amp;mut s[..5]; // mutable reference to `String`
+        greeting.make_ascii_uppercase();
+        // .. no use of `greeting` after this point
+
+        let r: &amp;str = &amp;s; // immutable reference to `String`
+        println!(&quot;s = '{}'&quot;, r); // s = 'HELLO, world'
+    } // where the mutable reference `greeting` would naively be dropped
+<span class="boring">}</span></code></pre></pre>
+<h2 id="algebra-of-lifetimes"><a class="header" href="#algebra-of-lifetimes">Algebra of Lifetimes</a></h2>
+<p>Although lifetimes are ubiquitous when dealing with references in Rust, you don't get to specify them in any detail
+– there's no way to say &quot;I'm dealing with a lifetime that extends from line 17 to line 32 of <code>ref.rs</code>&quot;.  (There's
+one partial exception to this, covered below: <a name="a022"></a><code>'static</code>.)</p>
+<p>Instead, your code refers to lifetimes with arbitrary labels, conventionally <code>'a</code>, <code>'b</code>, <code>'c</code>, …, and the
+compiler has its own internal, inaccessible representation of what that equates to in the source code.</p>
+<p>You don't get to do much with these lifetime labels; the main thing that's possible is to compare one label with
+another, repeating a label to indicate that two lifetimes are the &quot;same&quot;.  (Later, we'll see that it's also possible to
+specify that one lifetime must be bigger than another, when expressed as the <a name="a023"></a>lifetime bounds for a generic.)</p>
+<p>This algebra of lifetimes is easiest to illustrate with function signatures: if the inputs and outputs of a function
+deal with references, what's the relationship between their lifetimes?</p>
+<p>The most common case is a function that receives a single reference as input, and emits a reference as output.  The
+output reference must have a lifetime, but what can it be?  There's only one possibility to choose from: the lifetime of
+the input, which means that they both share the same label, say <code>'a</code>:</p>
+<pre><code class="language-rust ignore">    pub fn first&lt;'a&gt;(data: &amp;'a [Item]) -&gt; Option&lt;&amp;'a Item&gt; {</code></pre>
+<p>Because this variant is so common, and because there's (almost) no choice about what the output lifetime can be, Rust has
+<em><a name="a024"></a>lifetime elision</em> rules that mean you don't have to explicitly write the lifetimes for this case.  A more idiomatic
+version of the same function signature would be:</p>
+<pre><code class="language-rust ignore">    pub fn first(data: &amp;[Item]) -&gt; Option&lt;&amp;Item&gt; {</code></pre>
+<p>What if there's more than one choice of input lifetimes to map to an output lifetime?  In this case, the compiler can't
+figure out what to do:</p>
+<pre><code class="language-rust ignore does_not_compile">    pub fn find(haystack: &amp;[u8], needle: &amp;[u8]) -&gt; Option&lt;&amp;[u8]&gt; {</code></pre>
+<pre><code class="language-text">error[E0106]: missing lifetime specifier
+   --&gt; lifetimes/src/main.rs:399:59
+    |
+399 |     pub fn find(haystack: &amp;[u8], needle: &amp;[u8]) -&gt; Option&lt;&amp;[u8]&gt; {
+    |                           -----          -----            ^ expected named lifetime parameter
+    |
+    = help: this function's return type contains a borrowed value, but the signature does not say whether it is borrowed from `haystack` or `needle`
+help: consider introducing a named lifetime parameter
+    |
+399 |     pub fn find&lt;'a&gt;(haystack: &amp;'a [u8], needle: &amp;'a [u8]) -&gt; Option&lt;&amp;'a [u8]&gt; {
+    |                ++++            ++                ++                  ++
+</code></pre>
+<p>A shrewd guess based on the function and parameter names is that the intended lifetime for the output here is expected
+to match the <code>haystack</code> input:</p>
+<pre><code class="language-rust ignore">    pub fn find&lt;'a, 'b&gt;(
+        haystack: &amp;'a [u8],
+        needle: &amp;'b [u8],
+    ) -&gt; Option&lt;&amp;'a [u8]&gt; {</code></pre>
+<p>Interestingly, the compiler suggested a different alternative: having both inputs to the function use the <em>same</em>
+lifetime <code>'a'</code>.  For example, a function where this combination of lifetimes might make sense is:</p>
+<pre><code class="language-rust ignore">    pub fn smaller&lt;'a&gt;(left: &amp;'a Item, right: &amp;'a Item) -&gt; &amp;'a Item {</code></pre>
+<p>This <em>appears</em> to imply that the two input lifetimes are the &quot;same&quot;, but the scare quotes (here and above) are included
+to signify that that's not quite what's going on.</p>
+<p>The <em>raison d'être</em> of lifetimes is to ensure that references to items don't out-live the items themselves; with this in
+mind, an output lifetime <code>'a</code> that's the &quot;same&quot; as an input lifetime <code>'a</code> just means that the input has to live longer
+than the output.</p>
+<p>When there are two input lifetimes <code>'a</code> that are the &quot;same&quot;, that just means that the output lifetime has to be
+contained within the lifetimes of <em>both</em> of the inputs:</p>
+<pre><code class="language-rust ignore">    {
+        let outer = Item { contents: 7 };
+        {
+            let inner = Item { contents: 8 };
+            {
+                let min = smaller(&amp;inner, &amp;outer);
+                println!(&quot;smaller of {:?} and {:?} is {:?}&quot;, inner, outer, min);
+            } // `min` dropped
+        } // `inner` dropped
+    } // `outer` dropped</code></pre>
+<p>To put it another way, the output lifetime has to be subsumed within the <em>smaller</em> of the lifetimes of the two inputs.</p>
+<p>In contrast, if the output lifetime is unrelated to the lifetime of one of the inputs, then there's no requirement for
+those lifetimes to nest:</p>
+<pre><code class="language-rust ignore">    {
+        let haystack = b&quot;123456789&quot;; // start of  lifetime 'a
+        let found = {
+            let needle = b&quot;234&quot;; // start of lifetime 'b
+            find(haystack, needle)
+        }; // end of lifetime 'b
+        println!(&quot;found = {:?}&quot;, found); // `found` use within 'a, outside of 'b
+    } // end of lifetime 'a</code></pre>
+<h3 id="lifetime-elision-rules"><a class="header" href="#lifetime-elision-rules">Lifetime Elision Rules</a></h3>
+<p>In addition to the &quot;one in, one out&quot; elision rule described above, there are two other elision rules that mean that
+lifetimes can be omitted.</p>
+<p>The first occurs when there are no references in the outputs from a function; in this case, each of the input references
+automatically gets its own lifetime, different from any of the other input parameters.</p>
+<p>The second occurs for methods that use a reference to <code>self</code> (either <code>&amp;self</code> or <code>&amp;mut self</code>); in this case, the compiler
+assumes that any output references take the lifetime of <code>self</code>, as this turns out to be (by far) the most common situation.</p>
+<p>Summarizing the <a name="a025"></a>elision rules for functions:</p>
+<ul>
+<li>One input, one or more outputs: assume outputs have the &quot;same&quot; lifetime as the input.
+<pre><code class="language-rust ignore">fn f(x: &amp;Item) -&gt; (&amp;Item, &amp;Item)
+// ... is equivalent to ...
+fn f&lt;'a&gt;(x: &amp;'a Item) -&gt; (&amp;'a Item, &amp;'a Item)</code></pre>
+</li>
+<li>Multiple inputs, no output: assume all the inputs have different lifetimes.
+<pre><code class="language-rust ignore">fn f(x: &amp;Item, y: &amp;Item, z: &amp;Item) -&gt; i32
+// ... is equivalent to ...
+fn f&lt;'a, 'b, 'c&gt;(x: &amp;'a Item, y: &amp;'b Item, z: &amp;'c Item) -&gt; i32</code></pre>
+</li>
+<li>Multiple inputs including <code>&amp;self</code>, one or more outputs: assume output lifetime(s) are the &quot;same&quot; as <code>&amp;self</code>'s lifetime.
+<pre><code class="language-rust ignore">fn f(&amp;self, y: &amp;Item, z: &amp;Item) -&gt; &amp;Thing
+// ... is equivalent to ...
+fn f(&amp;'a self, y: &amp;'b Item, z: &amp;'c Item) -&gt; &amp;'a Thing</code></pre>
+</li>
+</ul>
+<h2 id="the-static-lifetime"><a class="header" href="#the-static-lifetime">The <code>'static</code> Lifetime</a></h2>
+<p>The previous section described various different possible mappings between the input and output reference lifetimes for
+a function, but it neglected to cover one special case.  What happens if there are <em>no</em> input lifetimes, but the output
+return value includes a reference anyway?</p>
+<pre><code class="language-rust ignore does_not_compile">    pub fn the_answer() -&gt; &amp;Item {</code></pre>
+<pre><code class="language-text">error[E0106]: missing lifetime specifier
+   --&gt; lifetimes/src/main.rs:411:28
+    |
+411 |     pub fn the_answer() -&gt; &amp;Item {
+    |                            ^ expected named lifetime parameter
+    |
+    = help: this function's return type contains a borrowed value, but there is no value for it to be borrowed from
+help: consider using the `'static` lifetime
+    |
+411 |     pub fn the_answer() -&gt; &amp;'static Item {
+    |                            ~~~~~~~~
+</code></pre>
+<p>The only allowed possibility is for the returned reference to have a lifetime that's guaranteed to never go out of
+scope.  This is indicated by the special lifetime <strong><a name="a026"></a><code>'static</code></strong>, which is also the only lifetime that has a
+specific name rather than a placeholder label.</p>
+<pre><code class="language-rust ignore">    pub fn the_answer() -&gt; &amp;'static Item {</code></pre>
+<p>The simplest way to get something with the <code>'static</code> lifetime is to take a reference to a <a name="a027"></a>global variable that's
+been marked as <a name="a028"></a><a href="https://doc.rust-lang.org/std/keyword.static.html"><code>static</code></a>:</p>
+<pre><code class="language-rust ignore">    static ANSWER: Item = Item { contents: 42 };
+    pub fn the_answer() -&gt; &amp;'static Item {
+        &amp;ANSWER
+    }</code></pre>
+<p>The Rust compiler guarantees that a <code>static</code> item always has the same address for the entire duration of the program,
+and never moves.  This means that a reference to a <code>static</code> item has a <code>'static</code> lifetime, logically enough.</p>
+<p>Note that a <a name="a029"></a><code>const</code> global variable does <em>not</em> have the same guarantee: only the <em>value</em> is guaranteed to be the same
+everywhere, and the compiler is allowed to make as many copies as it likes, wherever the variable is used.  These
+potential copies may be ephemeral, and so won't satisfy the <code>'static</code> requirements:</p>
+<pre><code class="language-rust ignore does_not_compile">    const ANSWER: Item = Item { contents: 42 };
+    pub fn the_answer() -&gt; &amp;'static Item {
+        &amp;ANSWER
+    }</code></pre>
+<pre><code class="language-text">error[E0515]: cannot return reference to temporary value
+   --&gt; lifetimes/src/main.rs:424:9
+    |
+424 |         &amp;ANSWER
+    |         ^------
+    |         ||
+    |         |temporary value created here
+    |         returns a reference to data owned by the current function
+</code></pre>
+<p>There's one more possible way to get something with a <code>'static</code> lifetime.  The key promise of <code>'static</code> is that the
+lifetime should outlive any other lifetime in the program; a value that's allocated on the <a name="a030"></a>heap but <em>never freed</em>
+also satisfies this constraint.</p>
+<p>A normal heap-allocated <code>Box&lt;T&gt;</code> doesn't work for this, because there's no guarantee (as described in the next section)
+that the item won't get dropped along the way:</p>
+<pre><code class="language-rust ignore does_not_compile">    {
+        let boxed = Box::new(Item { contents: 12 });
+        let r: &amp;'static Item = &amp;boxed;
+        println!(&quot;'static item is {:?}&quot;, r);
+    }</code></pre>
+<pre><code class="language-text">error[E0597]: `boxed` does not live long enough
+   --&gt; lifetimes/src/main.rs:318:32
+    |
+318 |         let r: &amp;'static Item = &amp;boxed;
+    |                -------------   ^^^^^^ borrowed value does not live long enough
+    |                |
+    |                type annotation requires that `boxed` is borrowed for `'static`
+319 |         println!(&quot;'static item is {:?}&quot;, r);
+320 |     }
+    |     - `boxed` dropped here while still borrowed
+</code></pre>
+<p>However, the <a name="a031"></a><a href="https://doc.rust-lang.org/std/boxed/struct.Box.html#method.leak"><code>Box::leak</code></a> function
+converts an owned <code>Box&lt;T&gt;</code> to a mutable reference to <code>T</code>.  There's no longer an owner for the value, so it can never be
+dropped – which satisfies the requirements for the <code>'static</code> lifetime:</p>
+<pre><code class="language-rust ignore">    {
+        let boxed = Box::new(Item { contents: 12 });
+        // `leak()` consumes the `Box&lt;T&gt;` and returns `&amp;mut T`.
+        let r: &amp;'static Item = Box::leak(boxed);
+        println!(&quot;'static item is {:?}&quot;, r);
+    } // `boxed` not dropped here, because it was already moved</code></pre>
+<p>The inability to drop the item also means that the memory that holds the item can never be reclaimed using safe Rust,
+possibly leading to a permanent memory leak. Recovering the memory requires <code>unsafe</code> code, which makes this a technique
+to reserve for special circumstances.</p>
+<h2 id="lifetimes-and-the-heap"><a class="header" href="#lifetimes-and-the-heap">Lifetimes and the Heap</a></h2>
+<p>The discussion so far has concentrated on the lifetimes of items on the stack, whether function parameters, local
+variables or temporaries. But what about items on the <a name="a032"></a>heap?</p>
+<p>The key thing to realize about heap values is that every item has an owner (excepting special cases like the deliberate
+leaks described in the previous section).  For example, a simple <code>Box&lt;T&gt;</code> puts the <code>T</code> value on the heap, with the owner
+being the variable holding the <code>Box&lt;T&gt;</code>:</p>
+<pre><code class="language-rust ignore">    {
+        let b: Box&lt;Item&gt; = Box::new(Item { contents: 42 });
+    } // `b` dropped here, so `Item` dropped too.</code></pre>
+<p>The owning <code>Box&lt;Item&gt;</code> drops its contents when it goes out of scope, so the lifetime of the <code>Item</code> on the heap is the
+same as the lifetime of the <code>Box&lt;Item&gt;</code> variable on the stack.</p>
+<p>The owner of a value on the heap may itself be on the heap rather than the stack, but then who owns the owner?</p>
+<pre><code class="language-rust ignore">    {
+        let b: Box&lt;Item&gt; = Box::new(Item { contents: 42 });
+        let bb: Box&lt;Box&lt;Item&gt;&gt; = Box::new(b); // `b` moved onto heap here
+    } // `b` dropped here, so `Box&lt;Item&gt;` dropped too, so `Item` dropped too</code></pre>
+<p>The chain of ownership has to end somewhere, and there are only two possibilities:</p>
+<ul>
+<li>The chain ends at a local variable or function parameter – in which case the lifetime of everything in the chain
+is just the lifetime <code>'a</code> of that stack variable.  When the stack variable goes out of scope, everything in the chain
+is dropped too.</li>
+<li>The chain ends at a global variable marked as <code>static</code> – in which case the lifetime of everything in the chain
+is <code>'static</code>.  The <code>static</code> variable never goes out of scope, so nothing in the chain ever gets automatically dropped.</li>
+</ul>
+<p>As a result, the lifetimes of items on the heap are fundamentally tied to stack lifetimes.</p>
+<h2 id="lifetimes-in-data-structures"><a class="header" href="#lifetimes-in-data-structures">Lifetimes in Data Structures</a></h2>
+<p>The earlier section on the algebra of lifetimes concentrated on inputs and outputs for functions, but there are similar
+concerns when references are stored in data structures.</p>
+<p>If we try to sneak a reference into a data structure without mentioning an associated lifetime, the compiler brings us
+up sharply:</p>
+<pre><code class="language-rust ignore does_not_compile">    pub struct ReferenceHolder {
+        pub index: usize,
+        pub item: &amp;Item,
+    }</code></pre>
+<pre><code class="language-text">error[E0106]: missing lifetime specifier
+   --&gt; lifetimes/src/main.rs:452:19
+    |
+452 |         pub item: &amp;Item,
+    |                   ^ expected named lifetime parameter
+    |
+help: consider introducing a named lifetime parameter
+    |
+450 ~     pub struct ReferenceHolder&lt;'a&gt; {
+451 |         pub index: usize,
+452 ~         pub item: &amp;'a Item,
+    |
+</code></pre>
+<p>As usual, the compiler error message tells what to do. The first part is simple enough: give the reference type an
+explicit lifetime <code>'a</code>, because there are no lifetime elision rules when using references in data structures.</p>
+<p>The second part is less obvious and has deeper consequences: the data structure itself has to have a
+<a name="a033"></a>lifetime annotation <code>&lt;'a&gt;</code> that matches the lifetime of the reference contained within it:</p>
+<pre><code class="language-rust ignore">    pub struct ReferenceHolder&lt;'a&gt; {
+        pub index: usize,
+        pub item: &amp;'a Item,
+    }</code></pre>
+<p>The lifetime annotation for the data structure is infectious: any containing data structure that uses the type also has
+to acquire a lifetime annotation:</p>
+<pre><code class="language-rust ignore">    // Annotation includes lifetimes of all fields
+    pub struct MultiRefHolder&lt;'a, 'b&gt; {
+        pub left: ReferenceHolder&lt;'a&gt;,
+        pub right: ReferenceHolder&lt;'b&gt;, // Could choose 'a instead here
+    }</code></pre>
+<p>This makes sense: anything that contains a reference, no matter how deeply nested, is only valid for the lifetime of the
+item referred to. If that item is moved or dropped, then the whole chain of data structures is no longer valid.</p>
+<p>However, this does also mean that data structures involving references are harder to use – the owner of the data
+structure has to ensure that the lifetimes all line up.  As a result, <strong>prefer data structures that own their contents</strong>
+where possible, particularly if the code doesn't need to be highly optimized (<a href="optimize.html">Item 20</a>).  Where that's not possible, the
+various smart pointer types (e.g. <a name="a034"></a><a href="https://doc.rust-lang.org/stable/std/rc/struct.Rc.html"><code>Rc</code></a>) described in
+<a href="references.html">Item 9</a> can help untangle the lifetime constraints.</p>
+<h3 id="lifetime-bounds"><a class="header" href="#lifetime-bounds">Lifetime Bounds</a></h3>
+<p>Generic<a name="a035"></a> code (<a href="generics.html">Item 12</a>) involves some unknown type <code>T</code>, often constrained by a <a name="a036"></a>trait bound <code>T: SomeTrait</code>.  But what happens if the code that's built around <code>T</code> is a reference type?</p>
+<p>There's various different ways that references can make their way into the generics mix:</p>
+<ul>
+<li>A generic might take a <code>&lt;T&gt;</code>, but include code that deals with references-to-<code>T</code>, for example <code>&amp;T</code>.</li>
+<li>The type <code>T</code> might itself be a reference type, for example <code>&amp;Thing</code>, or some bigger data structure <code>MultiRefHolder&lt;'a, 'b&gt;</code> that includes references.</li>
+</ul>
+<p>Regardless of the route by which references arise, any generic data structure needs to propagate their associated
+lifetimes, as in the previous section.</p>
+<p>The main way to allow for this is to specify <a name="a037"></a><a href="https://doc.rust-lang.org/reference/trait-bounds.html#lifetime-bounds">lifetime
+bounds</a>, which indicate that either a type
+(<code>T: 'b</code>) or specific lifetime <code>'a: 'b</code> has to outlive some other lifetime <code>'b</code>.</p>
+<p>For example, consider a type that wraps a reference (somewhat akin to the <a name="a038"></a><code>Ref</code> type returned by
+<a name="a039"></a><code>RefCell::borrow()</code>):</p>
+<pre><code class="language-rust ignore">pub struct Ref&lt;'a, T: 'a&gt;(&amp;'a T);</code></pre>
+<p>This generic data structure holds an explicit reference <code>&amp;'a T</code>, as per the first bullet above.  But the type <code>T</code> might
+itself contain references with some lifetime <code>'b</code>, as per the second bullet above.  If <code>T</code>'s inherent lifetime <code>'b</code> were
+smaller than the exterior lifetime <code>'a</code> we'd have a potential disaster: the <code>Ref</code> would be holding a reference to a data
+structure whose own references have gone bad.</p>
+<p>To prevent this, we need <code>'b</code> to be larger than <code>'a</code>; for named lifetimes this would be written as <code>'b: 'a</code>, but we need
+to say that slightly differently, as <code>T: 'a</code>.  Roughly translated into words, that says &quot;any references in the type <code>T</code>
+must have a lifetime that outlives <code>'a</code>&quot;, and that makes <code>Ref</code> safe: if its own lifetime (<code>'a</code>) is still valid, then so
+are any references hidden inside <code>T</code>.</p>
+<p>Translating lifetime bounds into words also helps with a <code>'static</code> lifetime bound like <code>T: 'static</code>. This says that &quot;any
+references in the type <code>T</code> must have a <code>'static</code> lifetime&quot;, which means that <code>T</code> can't have any dynamic references.  Any
+non-reference type <code>T</code> that owns its contents – <code>String</code>, <code>Vec</code> etc. – satisfies this bound, but any type
+that has an <code>&lt;'a&gt;</code> creeping in does not.</p>
+<p>One common place this shows up is when you try to move values between threads with
+<a href="https://doc.rust-lang.org/std/thread/fn.spawn.html"><code>std::thread::spawn</code></a>. The moved values need to be of types that
+implement <a name="a040"></a><code>Send</code> (see <a href="deadlock.html">Item 17</a>), indicating that they're safe to move between threads, but they also need to not contain
+any dynamic references (the <code>'static</code> lifetime bound).  This makes sense when you realize that a reference to something
+on the stack now raises the question: which stack?  Each thread's stack is independent, and so lifetimes can't be
+tracked between them.</p>
+<p><hr/>
+<p><a name="footnote-1"><a href="#to-footnote-1">1</a></a>: For example, the <a name="a014"></a>Chromium project estimates that <a href="https://www.chromium.org/Home/chromium-security/memory-safety/">70% of security
+bugs are due to memory safety</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="concepts.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="borrows.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="concepts.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="borrows.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="src/third_party/ferris/ferris.js"></script>
+
+
+    </div>
+    </body>
+</html>
