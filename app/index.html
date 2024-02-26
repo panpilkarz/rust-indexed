@@ -58,10 +58,6 @@
     <button id="search-more" class="btn btn-primary d-none" type="button">More &raquo;</button>
 </div>
 
-<div class="d-grid gap-2 col-2 mx-auto">
-    <button id="search-more" class="btn btn-primary d-none" type="button">More &raquo;</button>
-</div>
-
 <footer class="mt-auto">
     <ul class="nav justify-content-center border-top">
         <li class="nav-item"><a href="mailto:hello@rust-indexed.com" class="nav-link px-2 text-body-secondary">Hello</a></li>
@@ -81,31 +77,6 @@
     const searchMore = document.getElementById('search-more');
     const searchInput = document.getElementById('search-input');
     const alertContainer = document.getElementById('alert');
-
-    function create_result_row(result) {
-        let html = `
-        <div class="row border-bottom search-res-row">
-            <h4><a href="${result.url}" class="text-primary search-res-title" target="_blank">${result.title}</a></h4>
-            <p><a href="${result.url}" class="text-muted search-res-url" target="_blank">${result.url}</a></p>
-        `;
-
-        if (result.snippet) {
-            html += `
-            <p>${result.snippet}</p>
-            `;
-        }
-
-        if (result.body) {
-            html += `
-            <pre><code class="language-rust">${result.body}</code></pre>
-            `;   
-        }
-
-        html += `
-        </div>
-        `;
-        return html;
-    }
 
     document.getElementById('search-form').addEventListener('submit', function (event) {
         event.preventDefault();
@@ -153,6 +124,32 @@
         Prism.highlightAll();
     }
 
+
+    function create_result_row(result) {
+        let html = `
+        <div class="row border-bottom search-res-row">
+            <h4><a href="${result.url}" class="text-primary search-res-title" target="_blank">${result.title}</a></h4>
+            <p><a href="${result.url}" class="text-muted search-res-url" target="_blank">${result.url}</a></p>
+        `;
+
+        if (result.snippet) {
+            html += `
+            <p>${result.snippet}</p>
+            `;
+        }
+
+        if (result.body) {
+            html += `
+            <pre><code class="language-rust">${result.body}</code></pre>
+            `;
+        }
+
+        html += `
+        </div>
+        `;
+        return html;
+    }
+
     function search() {
         if (results.length) {
             render_results();
@@ -161,9 +158,6 @@
 
         fetch(`/search/?q=${query}`)
         .then(response => {
-            if (!response.ok) {
-                console.log('Network response was not ok');
-            }
             return response.json();
         })
         .then(data => {
@@ -171,18 +165,23 @@
             if (!results.length) {
                 let new_query = "rust+" + query.replace(/ /g, '+');
                 let brave = `https://search.brave.com/search?q=${new_query}`;
-                alertContainer.classList.add('alert-info');
-                alertContainer.innerHTML = `No results :(<br/><a href="${brave}" target="_blank">Search in Brave Search &raquo;</a>`;
-                alertContainer.classList.remove('d-none');
+                show_alert('primary', `No results. <a href="${brave}" class="alert-link" target="_blank">Search in Brave Search &raquo;</a>`);
+            }
+            else {
+                show_alert('primary', `Found <strong>${results.length}</strong> in <strong>${data.duration_milis}</strong> ms.`);
             }
             render_results();
         })
         .catch(error => {
-            alertContainer.innerHTML = 'Ups, something went wrong :/';
-            alertContainer.classList.add('alert-danger');
-            alertContainer.classList.remove('d-none');
+            show_alert("danger", 'Ups, something went wrong :/');
             console.error('Error:', error);
         });
+    }
+
+    function show_alert(alert_type, text) {
+        alertContainer.classList.add(`alert-${alert_type}`);
+        alertContainer.innerHTML = text;
+        alertContainer.classList.remove('d-none');
     }
 
     if (window.location.hash.length > 1) {
