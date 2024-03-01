@@ -4,6 +4,9 @@ all:
 index: reset
 	cargo run --example indexer
 
+run-prod:
+	cargo run --release
+
 test:
 	cargo test --lib
 
