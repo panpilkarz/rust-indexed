@@ -51,3 +51,15 @@ title = "Tokio Tutorial"
 base_url = "https://tokio.rs/tokio/tutorial"
 directory = "mdbooks/website/content/tokio/tutorial/"
 is_md = true
+
+[[sources]]
+title = "Rust Design Patterns"
+base_url = "https://rust-unofficial.github.io/patterns"
+directory = "mdbooks/patterns/src"
+is_mdbook = true
+
+[[sources]]
+title = "The Little Book of Rust Macros"
+base_url = "https://veykril.github.io/tlborm"
+directory = "mdbooks/tlborm/src"
+is_mdbook = true

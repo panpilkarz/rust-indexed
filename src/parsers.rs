@@ -72,7 +72,7 @@ fn parse_include(s: &str, md_dir: &str) -> Option<String> {
 pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
     s.split('\n')
         .map(|x| x.trim())
-        .filter(|x| !x.is_empty())
+        .filter(|x| !x.is_empty() && !x.contains("<!--"))
         .map(|x| x.split("](").collect())
         .filter(|x: &Vec<&str>| x.len() == 2)
         .map(|x: Vec<&str>| {
@@ -80,6 +80,12 @@ pub fn parse_summary_md(s: &str) -> Vec<(String, String)> {
                 seek_link_description(x[0]).to_string(),
                 x[1].replace(".md)", ""),
             )
+        })
+        .map(|x: (String, String)| {
+            if x.1.starts_with("./") {
+                return (x.0, x.1[2..].to_string());
+            }
+            x
         })
         .filter(|x| !(x.0.is_empty() || x.1.is_empty()))
         .collect()

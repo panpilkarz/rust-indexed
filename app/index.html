@@ -63,6 +63,7 @@
         <li class="nav-item"><a href="mailto:hello@rust-indexed.com" class="nav-link px-2 text-body-secondary">Hello</a></li>
         <li class="nav-item"><a href="https://github.com/panpilkarz/rust-indexed" class="nav-link px-2 text-body-secondary">Github</a></li>
         <li class="nav-item"><a href="https://rust-indexed.com/rust-vs-python/" class="nav-link px-2 text-body-secondary">My Book</a></li>
+        <li class="nav-item"><a href="https://alice-bob.dev" class="nav-link px-2 text-body-secondary"><strong>Hire me!</strong></a></li>
     </ul>
 </footer>
 
@@ -108,9 +109,9 @@
             return;
         }
 
-        let slice = results.slice(page * 10 , (page + 1) * 10);
+        let slice = results.slice(page * 20 , (page + 1) * 20);
 
-        if (slice.length >= 10) {
+        if (slice.length >= 20) {
             searchMore.classList.remove("d-none");
         }
         else {

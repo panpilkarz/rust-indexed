@@ -28,6 +28,8 @@ get-mdbooks:
 	cd mdbooks; git clone git@github.com:rust-lang-nursery/rust-cookbook.git || true
 	cd mdbooks; git clone https://github.com/panpilkarz/rust-vs-python || true
 	cd mdbooks; git clone https://git.sr.ht/~ntietz/yet-another-rust-resource || true
+	cd mdbooks; git clone git@github.com:rust-unofficial/patterns.git || true
+	cd mdbooks; git clone git@github.com:Veykril/tlborm.git || true
 
 update-mdbooks:
 	git -C mdbooks/comprehensive-rust pull
@@ -39,6 +41,8 @@ update-mdbooks:
 	git -C mdbooks/yet-another-rust-resource pull
 	git -C mdbooks/website pull
 	rm -rf mdbooks/website/content/tokio/tutorial/index.md
+	git -C mdbooks/patterns pull
+	git -C mdbooks/tlborm pull
 
 reset:
 	rm -rf indexes/*
