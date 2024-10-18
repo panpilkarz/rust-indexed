@@ -1,8 +1,8 @@
 use serde::Serialize;
 use tantivy::collector::{Count, TopDocs};
 use tantivy::query::{FuzzyTermQuery, QueryParser};
-use tantivy::schema::{Field, Schema, Term, STORED, TEXT};
-use tantivy::{doc, Index, IndexWriter, ReloadPolicy, Searcher, SnippetGenerator, TantivyError};
+use tantivy::schema::{Field, Schema, Term, STORED, TEXT, Value};
+use tantivy::{doc, Index, IndexWriter, ReloadPolicy, Searcher, SnippetGenerator, TantivyError, TantivyDocument};
 
 pub struct SearchIndex {
     dir: String,
@@ -150,18 +150,18 @@ impl SearchIndex {
                             snippet_generator.set_max_num_chars(80);
 
                             for (_score, doc_address) in docs {
-                                if let Ok(retrieved_doc) = searcher.doc(doc_address) {
+                                if let Ok(retrieved_doc) = searcher.doc::<TantivyDocument>(doc_address) {
                                     let url = retrieved_doc
                                         .get_first(self.url())
                                         .unwrap()
-                                        .as_text()
+                                        .as_str()
                                         .unwrap()
                                         .to_string();
 
                                     let title = retrieved_doc
                                         .get_first(self.title())
                                         .unwrap()
-                                        .as_text()
+                                        .as_str()
                                         .unwrap()
                                         .to_string();
 
@@ -170,7 +170,7 @@ impl SearchIndex {
                                             retrieved_doc
                                                 .get_first(self.body())
                                                 .unwrap()
-                                                .as_text()
+                                                .as_str()
                                                 .unwrap()
                                                 .to_string(),
                                         )
@@ -224,18 +224,18 @@ impl SearchIndex {
         if let Some(searcher) = &self.searcher {
             if let Ok((docs, _count)) = searcher.search(&query, &(TopDocs::with_limit(10), Count)) {
                 for (_score, doc_address) in docs {
-                    if let Ok(retrieved_doc) = searcher.doc(doc_address) {
+                    if let Ok(retrieved_doc) = searcher.doc::<TantivyDocument>(doc_address) {
                         let url = retrieved_doc
                             .get_first(self.url())
                             .unwrap()
-                            .as_text()
+                            .as_str()
                             .unwrap()
                             .to_string();
 
                         let title = retrieved_doc
                             .get_first(self.title())
                             .unwrap()
-                            .as_text()
+                            .as_str()
                             .unwrap()
                             .to_string();
 
@@ -244,7 +244,7 @@ impl SearchIndex {
                                 retrieved_doc
                                     .get_first(self.body())
                                     .unwrap()
-                                    .as_text()
+                                    .as_str()
                                     .unwrap()
                                     .to_string(),
                             )

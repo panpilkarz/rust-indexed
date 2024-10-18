@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.2"
-bitflags = "2.4.2"
-html-escape = "0.2.13"
-lazy_static = "1.4.0"
-regex = "1.10.3"
-serde = "1.0.193"
-tantivy = "0.21.1"
-tokio = { version = "1.0", features = ["full"] }
-toml = "0.8.8"
-tower = { version = "0.4", features = ["util"] }
-tower-http = { version = "0.5.0", features = ["fs"] }
+axum = "*"
+bitflags = "*"
+html-escape = "*"
+lazy_static = "*"
+regex = "*"
+serde = "*"
+tantivy = "*"
+tokio = { version = "*", features = ["full"] }
+toml = "*"
+tower = { version = "*", features = ["util"] }
+tower-http = { version = "*", features = ["fs"] }
