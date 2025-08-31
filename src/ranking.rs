@@ -66,10 +66,8 @@ impl Ranking {
         // 2/3 if no results, search 'impl trait'
         for index in &indexes {
             if let Ok(res) = index.search(q) {
-                let res: Vec<SearchResult> = res
-                    .into_iter()
-                    .filter(|r| urls.get(&r.url).is_none())
-                    .collect();
+                let res: Vec<SearchResult> =
+                    res.into_iter().filter(|r| urls.contains(&r.url)).collect();
                 results.extend(res);
             }
         }
@@ -84,10 +82,8 @@ impl Ranking {
 
             for index in &indexes {
                 if let Ok(res) = index.fuzzy_search_title(q) {
-                    let res: Vec<SearchResult> = res
-                        .into_iter()
-                        .filter(|r| urls.get(&r.url).is_none())
-                        .collect();
+                    let res: Vec<SearchResult> =
+                        res.into_iter().filter(|r| urls.contains(&r.url)).collect();
                     results.extend(res);
                 }
             }
@@ -98,10 +94,8 @@ impl Ranking {
 
             for index in &indexes {
                 if let Ok(res) = index.fuzzy_search_body(q) {
-                    let res: Vec<SearchResult> = res
-                        .into_iter()
-                        .filter(|r| urls.get(&r.url).is_none())
-                        .collect();
+                    let res: Vec<SearchResult> =
+                        res.into_iter().filter(|r| urls.contains(&r.url)).collect();
                     results.extend(res);
                 }
             }

@@ -3,10 +3,7 @@ use tantivy::collector::{Count, TopDocs};
 use tantivy::query::{FuzzyTermQuery, QueryParser};
 use tantivy::schema::{Field, Schema, Term, Value, STORED, TEXT};
 use tantivy::snippet::SnippetGenerator;
-use tantivy::{
-    doc, Index, IndexWriter, ReloadPolicy, Searcher, TantivyDocument,
-    TantivyError,
-};
+use tantivy::{doc, Index, IndexWriter, ReloadPolicy, Searcher, TantivyDocument, TantivyError};
 
 pub struct SearchIndex {
     dir: String,

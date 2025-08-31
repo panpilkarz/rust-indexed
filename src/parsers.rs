@@ -22,6 +22,13 @@ fn strip_ticks(text: &str) -> String {
     text.chars().filter(|&ch| ch != '`').collect()
 }
 
+fn strip_nav(text: &str) -> String {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"(?s)<nav .*?</nav>").unwrap();
+    }
+    RE.replace_all(text, "").to_string()
+}
+
 fn parse_html_title(html: &str) -> Option<String> {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"<title>(.*?)</title>").unwrap();
@@ -165,7 +172,8 @@ pub fn parse_html_page(html: &str) -> (String, Vec<String>, Option<String>) {
     // todo: parse code blocks
     let title = parse_html_title(html);
 
-    let text = strip_tags(html);
+    let text = strip_nav(html);
+    let text = strip_tags(&text);
     let text = decode_html_entities(&text).to_string();
 
     (text, vec![], title)

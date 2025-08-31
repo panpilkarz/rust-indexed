@@ -8,7 +8,6 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 use tokio::task;
-use tower_http::services::ServeDir;
 
 struct AppState {
     page_index: RwLock<Ranking>,
@@ -25,7 +24,6 @@ async fn main() {
 
     let app = Router::new()
         .route("/search/", get(search)) // API
-        .nest_service("/", ServeDir::new("app")) // Static (for local development)
         .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
