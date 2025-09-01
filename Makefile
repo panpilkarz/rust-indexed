@@ -33,6 +33,8 @@ get-mdbooks:
 	cd mdbooks; git clone https://git.sr.ht/~ntietz/yet-another-rust-resource || true
 	cd mdbooks; git clone git@github.com:rust-unofficial/patterns.git || true
 	cd mdbooks; git clone git@github.com:Veykril/tlborm.git || true
+	cd mdbooks; git clone git@github.com:mainmatter/100-exercises-to-learn-rust || true
+	cd mdbooks; git clone git@github.com:nnethercote/perf-book.git || true
 
 update-mdbooks:
 	git -C mdbooks/comprehensive-rust pull

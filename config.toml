@@ -60,6 +60,18 @@ is_mdbook = true
 
 [[sources]]
 title = "The Little Book of Rust Macros"
-base_url = "https://veykril.github.io/tlborm"
+base_url = "https://lukaswirth.dev/tlborm"
 directory = "mdbooks/tlborm/src"
+is_mdbook = true
+
+[[sources]]
+title = "100 Exercises To Learn Rust"
+base_url = "https://rust-exercises.com/100-exercises"
+directory = "mdbooks/100-exercises-to-learn-rust/book/src"
+is_mdbook = true
+
+[[sources]]
+title = "The Rust Performance Book"
+base_url = "https://nnethercote.github.io/perf-book"
+directory = "mdbooks/perf-book/src"
 is_mdbook = true
